@@ -51,7 +51,7 @@
                             <a class="nav-link {{ Request::is('admin/players*') ? 'active' : '' }}" href="{{ route('players.index') }}"><i class="fa-solid fa-users me-2"></i>Manage Players</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ Request::is('admin/fixtures*') ? 'active' : '' }}" href="{{ url('/admin') }}"><i class="fa-solid fa-calendar-check me-2"></i>Fixtures</a>
+                            <a class="nav-link {{ Request::is('admin/fixtures*') ? 'active' : '' }}" href="{{ route('fixtures.index') }}"><i class="fa-solid fa-calendar-check me-2"></i>Fixtures</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('/') }}"><i class="fa-solid fa-arrow-left me-2"></i>Main Site</a>

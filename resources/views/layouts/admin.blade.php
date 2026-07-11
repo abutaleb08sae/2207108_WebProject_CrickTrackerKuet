@@ -54,6 +54,9 @@
                             <a class="nav-link {{ Request::is('admin/fixtures*') ? 'active' : '' }}" href="{{ route('fixtures.index') }}"><i class="fa-solid fa-calendar-check me-2"></i>Fixtures</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ Request::is('admin/news*') ? 'active' : '' }}" href="{{ route('admin.news.index') }}"><i class="fa-solid fa-newspaper me-2"></i>Manage News</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ url('/') }}"><i class="fa-solid fa-arrow-left me-2"></i>Main Site</a>
                         </li>
                     </ul>

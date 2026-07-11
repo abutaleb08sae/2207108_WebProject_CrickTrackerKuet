@@ -25,7 +25,7 @@
                 <tbody>
                     @forelse($teams as $team)
                         <tr>
-                            <td class="ps-4 text-muted fw-bold">{{ $team->id }}</td>
+                            <td class="ps-4 text-muted fw-bold">{{ $loop->iteration }}</td>
                             <td class="fw-bold text-dark">{{ $team->name }}</td>
                             <td class="text-muted text-truncate" style="max-width: 300px;">{{ $team->club_history ?? 'No description provided.' }}</td>
                             <td class="text-end pe-4">

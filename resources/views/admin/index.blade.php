@@ -7,7 +7,7 @@
 </div>
 
 <div class="row g-4 mb-4">
-    <div class="col-sm-6 col-xl-3">
+    <div class="col-sm-6 col-xl-4">
         <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
             <div class="d-flex align-items-center">
                 <div class="p-3 bg-primary-subtle text-primary rounded-3 me-3">
@@ -15,12 +15,13 @@
                 </div>
                 <div>
                     <h6 class="text-muted mb-1">Total Teams</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <h3 class="fw-bold mb-0">{{ $teamsCount }}</h3>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
+    
+    <div class="col-sm-6 col-xl-4">
         <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
             <div class="d-flex align-items-center">
                 <div class="p-3 bg-success-subtle text-success rounded-3 me-3">
@@ -28,12 +29,13 @@
                 </div>
                 <div>
                     <h6 class="text-muted mb-1">Registered Players</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <h3 class="fw-bold mb-0">{{ $playersCount }}</h3>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
+    
+    <div class="col-sm-6 col-xl-4">
         <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
             <div class="d-flex align-items-center">
                 <div class="p-3 bg-danger-subtle text-danger rounded-3 me-3">
@@ -41,7 +43,7 @@
                 </div>
                 <div>
                     <h6 class="text-muted mb-1">Live Matches</h6>
-                    <h3 class="fw-bold mb-0">0</h3>
+                    <h3 class="fw-bold mb-0">{{ $liveMatchesCount }}</h3>
                 </div>
             </div>
         </div>
@@ -50,6 +52,6 @@
 
 <div class="bg-white p-4 rounded-3 shadow-sm">
     <h5 class="fw-bold mb-3">System Notice</h5>
-    <p class="text-muted mb-0">Welcome to the CRICKTRACKER-KUET Management Panel. Use the sidebar workspace layout to maintain campus match scoring records data tables.</p>
+    <p class="text-muted mb-0">Welcome to the CRICKTRACKER-KUET Management Panel. Use the sidebar workspace layout to maintain campus match scoring records data tables and communicate updates via the news panel.</p>
 </div>
 @endsection

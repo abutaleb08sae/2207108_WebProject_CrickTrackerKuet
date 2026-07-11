@@ -6,32 +6,29 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\ScoringController;
 use App\Http\Controllers\PublicHomeController;
-
+use App\Http\Controllers\AdminNewsController;
+use App\Models\Team;
+use App\Models\Player;
+use App\Models\Fixture;
 
 Route::get('/', [PublicHomeController::class, 'index'])->name('public.home');
-
 Route::get('/standings', [PublicHomeController::class, 'standings'])->name('public.standings');
-
-
 Route::get('/fixtures', [PublicHomeController::class, 'fixtures'])->name('public.fixtures');
-
 Route::get('/results', [PublicHomeController::class, 'results'])->name('public.results');
-
-
 Route::get('/news', [PublicHomeController::class, 'newsArchive'])->name('public.news.index');
 
-
-
-
 Route::get('/admin', function () {
-    return view('admin.index');
-})->name('admin.index');
+    $teamsCount = Team::count();
+    $playersCount = Player::count();
+    $liveMatchesCount = Fixture::where('status', 'LIVE')->count();
 
+    return view('admin.index', compact('teamsCount', 'playersCount', 'liveMatchesCount'));
+})->name('admin.index');
 
 Route::resource('admin/teams', TeamController::class);
 Route::resource('admin/players', PlayerController::class);
 Route::resource('admin/fixtures', FixtureController::class);
-
+Route::resource('admin/news', AdminNewsController::class, ['as' => 'admin']);
 
 Route::get('admin/scoring', [ScoringController::class, 'index'])->name('scoring.index');
 Route::get('admin/scoring/{fixture}', [ScoringController::class, 'showDashboard'])->name('scoring.dashboard');

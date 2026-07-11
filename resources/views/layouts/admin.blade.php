@@ -42,7 +42,7 @@
                             <a class="nav-link {{ Request::is('admin') ? 'active' : '' }}" href="{{ url('/admin') }}"><i class="fa-solid fa-chart-line me-2"></i>Overview</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ Request::is('admin/scoring*') ? 'active' : '' }}" href="{{ url('/admin') }}"><i class="fa-solid fa-tower-broadcast me-2"></i>Live Scoring</a>
+                            <a class="nav-link {{ Request::is('admin/scoring*') ? 'active' : '' }}" href="{{ route('scoring.index') }}"><i class="fa-solid fa-tower-broadcast me-2"></i>Live Scoring</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{ Request::is('admin/teams*') ? 'active' : '' }}" href="{{ route('teams.index') }}"><i class="fa-solid fa-shield-halved me-2"></i>Manage Teams</a>

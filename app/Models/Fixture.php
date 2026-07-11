@@ -20,4 +20,9 @@ class Fixture extends Model
     {
         return $this->belongsTo(Team::class, 'team_two_id');
     }
+    
+    public function matchScore()
+    {
+    return $this->hasOne(MatchScore::class);
+    }
 }

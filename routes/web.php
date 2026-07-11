@@ -5,10 +5,9 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\ScoringController;
+use App\Http\Controllers\PublicHomeController;
 
-Route::get('/', function () {
-    return view('public.home');
-});
+Route::get('/', [PublicHomeController::class, 'index'])->name('public.home');
 
 Route::get('/admin', function () {
     return view('admin.index');

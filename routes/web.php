@@ -33,3 +33,5 @@ Route::resource('admin/news', AdminNewsController::class, ['as' => 'admin']);
 Route::get('admin/scoring', [ScoringController::class, 'index'])->name('scoring.index');
 Route::get('admin/scoring/{fixture}', [ScoringController::class, 'showDashboard'])->name('scoring.dashboard');
 Route::post('admin/scoring/{fixture}/update', [ScoringController::class, 'updateScore'])->name('scoring.update');
+Route::post('/admin/scoring/{id}/update', [ScoringController::class, 'updateScore'])->name('scoring.update');
+Route::post('/admin/scoring/{id}/toss', [ScoringController::class, 'saveToss'])->name('scoring.toss');

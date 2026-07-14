@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Fixture;
 use App\Models\News;
 use App\Models\Team;
+use Illuminate\Support\Facades\DB;
 
 class PublicHomeController extends Controller
 {
@@ -42,18 +43,45 @@ class PublicHomeController extends Controller
                 continue;
             }
 
+            $score = DB::table('match_scores')->where('fixture_id', $match->id)->first();
+
+            // Skip empty test matches
+            if (!$score || ((int)$score->innings_one_runs === 0 && (int)$score->innings_two_runs === 0)) {
+                continue;
+            }
+
             $standings[$match->team_one_id]['played']++;
             $standings[$match->team_two_id]['played']++;
 
-            if ($match->winner_id == $match->team_one_id) {
-                $standings[$match->team_one_id]['won']++;
-                $standings[$match->team_one_id]['points'] += 2;
-                $standings[$match->team_two_id]['lost']++;
-            } elseif ($match->winner_id == $match->team_two_id) {
-                $standings[$match->team_two_id]['won']++;
-                $standings[$match->team_two_id]['points'] += 2;
-                $standings[$match->team_one_id]['lost']++;
+            // DYNAMIC WINNER FALLBACK: If winner_id is NULL due to a mass-assignment bug, calculate it from the scores
+            $winnerId = $match->winner_id;
+            if (is_null($winnerId)) {
+                $i1 = (int)$score->innings_one_runs;
+                $i2 = (int)$score->innings_two_runs;
+                if ($i1 > $i2) {
+                    $winnerId = $score->innings_one_batting_team_id;
+                } elseif ($i2 > $i1) {
+                    $winnerId = $score->innings_two_batting_team_id;
+                }
+            }
+
+            if (!is_null($winnerId)) {
+                if ($winnerId == $match->team_one_id) {
+                    $standings[$match->team_one_id]['won']++;
+                    $standings[$match->team_one_id]['points'] += 2;
+                    $standings[$match->team_two_id]['lost']++;
+                } elseif ($winnerId == $match->team_two_id) {
+                    $standings[$match->team_two_id]['won']++;
+                    $standings[$match->team_two_id]['points'] += 2;
+                    $standings[$match->team_one_id]['lost']++;
+                } else {
+                    $standings[$match->team_one_id]['tied']++;
+                    $standings[$match->team_two_id]['tied']++;
+                    $standings[$match->team_one_id]['points'] += 1;
+                    $standings[$match->team_two_id]['points'] += 1;
+                }
             } else {
+                // True Tie (Equal runs)
                 $standings[$match->team_one_id]['tied']++;
                 $standings[$match->team_two_id]['tied']++;
                 $standings[$match->team_one_id]['points'] += 1;

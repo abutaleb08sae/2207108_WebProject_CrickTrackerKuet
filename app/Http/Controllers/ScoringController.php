@@ -60,13 +60,12 @@ class ScoringController extends Controller
             $inningsOneBatting = ($tossDecision === 'BAT') ? $teamTwoId : $teamOneId;
         }
 
-        $score->update([
-            'toss_winner_id' => $tossWinner,
-            'toss_decision' => $tossDecision,
-            'innings_one_batting_team_id' => $inningsOneBatting,
-            'innings_two_batting_team_id' => ($inningsOneBatting == $teamOneId) ? $teamTwoId : $teamOneId,
-            'current_innings' => 1
-        ]);
+        $score->toss_winner_id = $tossWinner;
+        $score->toss_decision = $tossDecision;
+        $score->innings_one_batting_team_id = $inningsOneBatting;
+        $score->innings_two_batting_team_id = ($inningsOneBatting == $teamOneId) ? $teamTwoId : $teamOneId;
+        $score->current_innings = 1;
+        $score->save();
 
         return redirect()->action([self::class, 'showDashboard'], ['fixture' => $fixtureId])
                          ->with('success', 'Toss recorded! Scoring engine initialized.');
@@ -123,15 +122,14 @@ class ScoringController extends Controller
                 break;
             case 'end_innings':
                 if ($currentInnings == 1) {
-                    $score->update([
-                        'current_innings' => 2,
-                        'runs' => 0,
-                        'wickets' => 0,
-                        'balls_bowled' => 0,
-                        'innings_two_runs' => 0,
-                        'innings_two_wickets' => 0,
-                        'innings_two_balls' => 0
-                    ]);
+                    $score->current_innings = 2;
+                    $score->runs = 0;
+                    $score->wickets = 0;
+                    $score->balls_bowled = 0;
+                    $score->innings_two_runs = 0;
+                    $score->innings_two_wickets = 0;
+                    $score->innings_two_balls = 0;
+                    $score->save();
                     return redirect()->back()->with('success', '1st Innings closed! Target set.');
                 }
                 break;
@@ -147,7 +145,6 @@ class ScoringController extends Controller
                 $i2Runs = (int)($score->innings_two_runs ?? 0);
                 $i2Wickets = (int)($score->innings_two_wickets ?? 0);
 
-                // FIXED: Explicitly calculate winner_id and update main columns to prevent standings table ties
                 if ($i1Runs > $i2Runs) {
                     $winnerId = $score->innings_one_batting_team_id;
                     $resultText = $i1Team->name . " won by " . ($i1Runs - $i2Runs) . " runs";
@@ -159,42 +156,53 @@ class ScoringController extends Controller
                     $resultText = "Match Tied";
                 }
 
-                $score->update([
-                    'match_result_string' => $resultText,
-                    'innings_two_runs' => $i2Runs,
-                    'innings_two_wickets' => $i2Wickets
-                ]);
+                $score->match_result_string = $resultText;
+                $score->innings_two_runs = $i2Runs;
+                $score->innings_two_wickets = $i2Wickets;
+                $score->save();
 
-                // Update the fixture status alongside the winner declaration to trigger system standings update recalculations
-                $fixture->update([
-                    'status' => 'COMPLETED', 
-                    'winner_id' => $winnerId
-                ]);
+                $fixture->status = 'COMPLETED';
+                $fixture->winner_id = $winnerId;
+                $fixture->save();
 
                 return redirect()->route('scoring.index')->with('success', 'Match scored completely! Leaderboards updated.');
 
             case 'reset':
-                $score->update([
-                    'runs' => 0, 'wickets' => 0, 'balls_bowled' => 0, 'current_innings' => 1,
-                    'toss_winner_id' => null, 'toss_decision' => null,
-                    'innings_one_batting_team_id' => null, 'innings_two_batting_team_id' => null,
-                    'innings_one_runs' => 0, 'innings_one_wickets' => 0, 'innings_one_balls' => 0,
-                    'innings_two_runs' => 0, 'innings_two_wickets' => 0, 'innings_two_balls' => 0,
-                    'match_result_string' => null
-                ]);
+                $score->runs = 0;
+                $score->wickets = 0;
+                $score->balls_bowled = 0;
+                $score->current_innings = 1;
+                $score->toss_winner_id = null;
+                $score->toss_decision = null;
+                $score->innings_one_batting_team_id = null;
+                $score->innings_two_batting_team_id = null;
+                $score->innings_one_runs = 0;
+                $score->innings_one_wickets = 0;
+                $score->innings_one_balls = 0;
+                $score->innings_two_runs = 0;
+                $score->innings_two_wickets = 0;
+                $score->innings_two_balls = 0;
+                $score->match_result_string = null;
+                $score->save();
                 return redirect()->back()->with('success', 'Match completely reset.');
         }
 
         if ($currentInnings == 1) {
-            $score->update([
-                'innings_one_runs' => $runs, 'innings_one_wickets' => $wickets, 'innings_one_balls' => $balls,
-                'runs' => $runs, 'wickets' => $wickets, 'balls_bowled' => $balls
-            ]);
+            $score->innings_one_runs = $runs;
+            $score->innings_one_wickets = $wickets;
+            $score->innings_one_balls = $balls;
+            $score->runs = $runs;
+            $score->wickets = $wickets;
+            $score->balls_bowled = $balls;
+            $score->save();
         } else {
-            $score->update([
-                'innings_two_runs' => $runs, 'innings_two_wickets' => $wickets, 'innings_two_balls' => $balls,
-                'runs' => $runs, 'wickets' => $wickets, 'balls_bowled' => $balls
-            ]);
+            $score->innings_two_runs = $runs;
+            $score->innings_two_wickets = $wickets;
+            $score->innings_two_balls = $balls;
+            $score->runs = $runs;
+            $score->wickets = $wickets;
+            $score->balls_bowled = $balls;
+            $score->save();
         }
 
         return redirect()->back();

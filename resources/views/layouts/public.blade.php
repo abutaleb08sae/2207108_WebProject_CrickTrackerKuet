@@ -85,10 +85,27 @@
                     <a href="{{ route('public.results') }}" class="nav-link-custom {{ Request::routeIs('public.results') ? 'active' : '' }}"><i class="fa-solid fa-square-poll-horizontal me-1"></i> Recent Results</a>
                     <a href="{{ route('public.news.index') }}" class="nav-link-custom {{ Request::routeIs('public.news.*') ? 'active' : '' }}"><i class="fa-solid fa-newspaper me-1"></i> News Board</a>
                 </div>
-                <div class="d-flex">
-                    <a href="{{ url('/admin') }}" class="btn btn-info btn-sm fw-bold px-3 py-2 text-dark rounded-3 shadow-sm">
-                        <i class="fa-solid fa-user-gear me-1"></i> Admin Deck
-                    </a>
+                <div class="d-flex align-items-center gap-2">
+                    @if(Session::has('user_id'))
+                        <span class="badge bg-secondary p-2 me-1 text-white">
+                            <i class="fa-solid fa-user me-1"></i> {{ Session::get('user_name') }}
+                        </span>
+                        @if(Session::get('user_role') === 'admin')
+                            <a href="{{ route('admin.index') }}" class="btn btn-warning btn-sm fw-bold px-3 py-2 text-dark rounded-3 shadow-sm">
+                                <i class="fa-solid fa-user-gear me-1"></i> Admin Panel
+                            </a>
+                        @endif
+                        <form action="{{ route('logout') }}" method="POST" class="d-inline mb-0">
+                            @csrf
+                            <button type="submit" class="btn btn-danger btn-sm fw-bold px-3 py-2 rounded-3 shadow-sm">
+                                <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Sign Out
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-info btn-sm fw-bold px-3 py-2 text-dark rounded-3 shadow-sm">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i> Sign In
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -97,6 +114,13 @@
     @yield('header_banner')
 
     <main class="container my-5">
+        @if(Session::has('success'))
+            <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+                <i class="fa-solid fa-circle-check me-2"></i> {{ Session::get('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         @yield('content')
     </main>
 

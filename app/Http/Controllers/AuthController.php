@@ -49,7 +49,7 @@ class AuthController extends Controller
         Session::flash('success', 'Logged in successfully!');
 
         if ($user->role === 'admin') {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.index');
         }
 
         return redirect()->route('public.home');

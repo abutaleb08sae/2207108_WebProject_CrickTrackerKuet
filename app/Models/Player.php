@@ -18,6 +18,7 @@ class Player extends Model
         'team_id', 
         'name', 
         'short_name',
+        'student_id', // <-- ADDED FOR MASS ASSIGNMENT SAFETY
         'photo_path', 
         'image_path', // Kept for safety migration alignment
         'role', 
@@ -29,7 +30,7 @@ class Player extends Model
         'height', 
         'jersey_number', 
         'debut_date', 
-        'biography',
+        // 'biography' REMOVED - Missing column in database schema
         
         // Career Stat Tracking Columns
         'matches_played',

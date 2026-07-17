@@ -45,13 +45,12 @@ class PlayerController extends Controller
             'date_of_birth' => 'nullable|date',
             'height' => 'nullable|string|max:20',
             'debut_date' => 'nullable|date',
-            'biography' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
 
             // Stat Tracking Validations
             'matches_played' => 'required|integer|min:0',
             'total_runs' => 'required|integer|min:0',
-            'total_wickets' => 'nullable|integer|min:0', // Kept for schema alignment safety
+            'total_wickets' => 'nullable|integer|min:0', 
             'wickets_taken' => 'nullable|integer|min:0',
             'highest_score' => 'nullable|integer|min:0',
             'batting_average' => 'nullable|numeric|min:0|max:999.99',
@@ -66,14 +65,19 @@ class PlayerController extends Controller
             'stumpings' => 'nullable|integer|min:0',
         ]);
 
-        // Cross-map duplicate columns for safety fallbacks
+        // Map and extract birth date field securely
         if (isset($validated['date_of_birth'])) {
             $validated['birth_date'] = $validated['date_of_birth'];
+            unset($validated['date_of_birth']);
         }
+
+        // Standardize bowling statistics array keys explicitly
         if (isset($validated['wickets_taken'])) {
-            $validated['total_wickets'] = $validated['wickets_taken'];
+            $validated['wickets_taken'] = $validated['wickets_taken'];
+            unset($validated['total_wickets']);
         } elseif (isset($validated['total_wickets'])) {
             $validated['wickets_taken'] = $validated['total_wickets'];
+            unset($validated['total_wickets']);
         }
 
         // Handle profile photo upload
@@ -123,7 +127,6 @@ class PlayerController extends Controller
             'date_of_birth' => 'nullable|date',
             'height' => 'nullable|string|max:20',
             'debut_date' => 'nullable|date',
-            'biography' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
 
             // Stat Tracking Validations
@@ -144,13 +147,19 @@ class PlayerController extends Controller
             'stumpings' => 'nullable|integer|min:0',
         ]);
 
+        // Map and extract birth date field securely
         if (isset($validated['date_of_birth'])) {
             $validated['birth_date'] = $validated['date_of_birth'];
+            unset($validated['date_of_birth']);
         }
+
+        // Standardize bowling statistics array keys explicitly
         if (isset($validated['wickets_taken'])) {
-            $validated['total_wickets'] = $validated['wickets_taken'];
+            $validated['wickets_taken'] = $validated['wickets_taken'];
+            unset($validated['total_wickets']);
         } elseif (isset($validated['total_wickets'])) {
             $validated['wickets_taken'] = $validated['total_wickets'];
+            unset($validated['total_wickets']);
         }
 
         // Handle profile photo modification

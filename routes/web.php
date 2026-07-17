@@ -8,14 +8,15 @@ use App\Http\Controllers\ScoringController;
 use App\Http\Controllers\PublicHomeController;
 use App\Http\Controllers\AdminNewsController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\GameController;
 use App\Models\Team;
 use App\Models\Player;
 use App\Models\Fixture;
 
 /*
-
+|--------------------------------------------------------------------------
 | Public & Authentication Routes
-
+|--------------------------------------------------------------------------
 */
 Route::middleware(['custom.auth'])->group(function () {
     Route::get('/', [PublicHomeController::class, 'index'])->name('public.home');
@@ -36,7 +37,9 @@ Route::middleware(['custom.auth'])->group(function () {
 });
 
 /*
+|--------------------------------------------------------------------------
 | Strict Admin Dashboard Routes
+|--------------------------------------------------------------------------
 */
 Route::middleware(['custom.auth', 'admin.strict'])->group(function () {
     
@@ -53,6 +56,7 @@ Route::middleware(['custom.auth', 'admin.strict'])->group(function () {
     Route::resource('admin/teams', TeamController::class);
     Route::resource('admin/players', PlayerController::class);
     Route::resource('admin/fixtures', FixtureController::class);
+    Route::resource('admin/games', GameController::class);
     Route::resource('admin/news', AdminNewsController::class, ['as' => 'admin']);
 
     // Live Match Scoring Engine Routes

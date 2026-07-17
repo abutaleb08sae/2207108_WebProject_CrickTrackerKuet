@@ -15,6 +15,7 @@ class Fixture extends Model
         'match_datetime', 
         'venue', 
         'status', 
+        'winner_id', // <-- Added to allow saving the winning team on completion
         'toss_winner_id', 
         'toss_decision', 
         'target_runs', 
@@ -43,11 +44,6 @@ class Fixture extends Model
         return $this->hasMany(Innings::class)->orderBy('innings_number', 'asc');
     }
 
-    public function squads()
-    {
-        return $this->hasMany(MatchSquad::class);
-    }
-
     public function currentStriker()
     {
         return $this->belongsTo(Player::class, 'current_striker_id');
@@ -61,5 +57,20 @@ class Fixture extends Model
     public function currentBowler()
     {
         return $this->belongsTo(Player::class, 'current_bowler_id');
+    }
+
+    public function liveState()
+    {
+        return $this->hasOne(LiveMatchState::class, 'fixture_id');
+    }
+
+    public function battingScorecards()
+    {
+        return $this->hasMany(BattingScorecard::class, 'fixture_id');
+    }
+
+    public function bowlingScorecards()
+    {
+        return $this->hasMany(BowlingScorecard::class, 'fixture_id');
     }
 }

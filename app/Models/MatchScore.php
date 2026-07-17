@@ -12,6 +12,7 @@ class MatchScore extends Model
         'wickets',
         'balls_bowled',
         'current_innings',
+        'target_runs', // <-- Added to allow mass-assignment and updates
         'toss_winner_id',
         'toss_decision',
         'innings_one_batting_team_id',

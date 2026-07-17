@@ -49,8 +49,56 @@
         $teamTwoModel = $fixture->teamTwo;
         $i1Batting = ($score->innings_one_batting_team_id == $fixture->team_one_id) ? $teamOneModel : $teamTwoModel;
         $i2Batting = ($score->innings_two_batting_team_id == $fixture->team_one_id) ? $teamOneModel : $teamTwoModel;
+        
+        // Dynamically deduce current active batting and bowling rosters
+        $currentBattingTeamId = ($score->current_innings == 1) ? $score->innings_one_batting_team_id : $score->innings_two_batting_team_id;
+        $battingRoster = ($currentBattingTeamId == $fixture->team_one_id) ? $team1Players : $team2Players;
+        $bowlingRoster = ($currentBattingTeamId == $fixture->team_one_id) ? $team2Players : $team1Players;
     @endphp
 
+    <!-- Professional Lineup Management Subpanel -->
+    <div class="card border-0 shadow-sm mb-4 bg-light text-start">
+        <div class="card-body">
+            <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-users me-2"></i>Active Lineup Management</h6>
+            <form action="{{ route('scoring.active_players', $fixture->id) }}" method="POST">
+                @csrf
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Batsman (On Strike)</label>
+                        <select name="batsman_on_strike_id" class="form-select form-select-sm">
+                            <option value="">-- Select Striker --</option>
+                            @foreach($battingRoster as $p)
+                                <option value="{{ $p->id }}" {{ $state->batsman_on_strike_id == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Batsman (Off Strike)</label>
+                        <select name="batsman_off_strike_id" class="form-select form-select-sm">
+                            <option value="">-- Select Non-Striker --</option>
+                            @foreach($battingRoster as $p)
+                                <option value="{{ $p->id }}" {{ $state->batsman_off_strike_id == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex gap-2">
+                        <div class="w-100">
+                            <label class="form-label small fw-bold text-muted">Current Bowler</label>
+                            <select name="current_bowler_id" class="form-select form-select-sm">
+                                <option value="">-- Select Bowler --</option>
+                                @foreach($bowlingRoster as $p)
+                                    <option value="{{ $p->id }}" {{ $state->current_bowler_id == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-dark text-nowrap fw-bold px-3 shadow-sm" style="height: 31px;">Update</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Board Interface -->
     <div class="row g-4 text-start">
         <div class="col-lg-5">
             <div class="card bg-dark text-white border-0 shadow-sm mb-3 text-center">
@@ -79,6 +127,69 @@
                             @endif
                         </strong>
                     </p>
+                </div>
+            </div>
+
+            <!-- Display Active Stats Modules -->
+            <div class="card border-0 shadow-sm p-3 mb-3 bg-white">
+                <h6 class="fw-bold text-dark border-bottom pb-2 mb-2"><i class="fa-solid fa-bolt text-warning me-1"></i> Current Live Performers</h6>
+                
+                <div class="table-responsive small">
+                    <table class="table table-sm table-borderless align-middle mb-2">
+                        <thead>
+                            <tr class="text-muted border-bottom">
+                                <th>Batsman</th>
+                                <th>R</th>
+                                <th>B</th>
+                                <th>4s</th>
+                                <th>6s</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if($state->striker)
+                            <tr class="fw-bold text-success">
+                                <td>{{ $state->striker->name }} *</td>
+                                <td>{{ $state->striker->battingScorecards->where('fixture_id', $fixture->id)->first()?->runs_scored ?? 0 }}</td>
+                                <td>{{ $state->striker->battingScorecards->where('fixture_id', $fixture->id)->first()?->balls_faced ?? 0 }}</td>
+                                <td>{{ $state->striker->battingScorecards->where('fixture_id', $fixture->id)->first()?->fours_hit ?? 0 }}</td>
+                                <td>{{ $state->striker->battingScorecards->where('fixture_id', $fixture->id)->first()?->sixes_hit ?? 0 }}</td>
+                            </tr>
+                            @endif
+                            @if($state->nonStriker)
+                            <tr class="text-dark">
+                                <td>{{ $state->nonStriker->name }}</td>
+                                <td>{{ $state->nonStriker->battingScorecards->where('fixture_id', $fixture->id)->first()?->runs_scored ?? 0 }}</td>
+                                <td>{{ $state->nonStriker->battingScorecards->where('fixture_id', $fixture->id)->first()?->balls_faced ?? 0 }}</td>
+                                <td>{{ $state->nonStriker->battingScorecards->where('fixture_id', $fixture->id)->first()?->fours_hit ?? 0 }}</td>
+                                <td>{{ $state->nonStriker->battingScorecards->where('fixture_id', $fixture->id)->first()?->sixes_hit ?? 0 }}</td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+
+                    <table class="table table-sm table-borderless align-middle mb-0 mt-2">
+                        <thead>
+                            <tr class="text-muted border-bottom">
+                                <th>Bowler</th>
+                                <th>O</th>
+                                <th>R</th>
+                                <th>W</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if($state->bowler)
+                            @php 
+                                $bowlerCard = $state->bowler->bowlingScorecards->where('fixture_id', $fixture->id)->first();
+                            @endphp
+                            <tr class="text-dark fw-bold">
+                                <td>{{ $state->bowler->name }}</td>
+                                <td>{{ $bowlerCard ? number_format($bowlerCard->overs_bowled, 1) : '0.0' }}</td>
+                                <td>{{ $bowlerCard?->runs_conceded ?? 0 }}</td>
+                                <td>{{ $bowlerCard?->wickets_taken ?? 0 }}</td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

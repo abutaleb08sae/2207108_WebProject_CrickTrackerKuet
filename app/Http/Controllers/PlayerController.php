@@ -73,7 +73,6 @@ class PlayerController extends Controller
 
         // Standardize bowling statistics array keys explicitly
         if (isset($validated['wickets_taken'])) {
-            $validated['wickets_taken'] = $validated['wickets_taken'];
             unset($validated['total_wickets']);
         } elseif (isset($validated['total_wickets'])) {
             $validated['wickets_taken'] = $validated['total_wickets'];
@@ -89,7 +88,7 @@ class PlayerController extends Controller
 
         Player::create($validated);
 
-        return redirect()->route('players.index')->with('success', 'Player registered successfully!');
+        return redirect()->route('admin.players.index')->with('success', 'Player registered successfully!');
     }
 
     /**
@@ -155,7 +154,6 @@ class PlayerController extends Controller
 
         // Standardize bowling statistics array keys explicitly
         if (isset($validated['wickets_taken'])) {
-            $validated['wickets_taken'] = $validated['wickets_taken'];
             unset($validated['total_wickets']);
         } elseif (isset($validated['total_wickets'])) {
             $validated['wickets_taken'] = $validated['total_wickets'];
@@ -178,7 +176,7 @@ class PlayerController extends Controller
 
         $player->update($validated);
 
-        return redirect()->route('players.index')->with('success', 'Player profile updated successfully!');
+        return redirect()->route('admin.players.index')->with('success', 'Player profile updated successfully!');
     }
 
     /**
@@ -195,6 +193,6 @@ class PlayerController extends Controller
 
         $player->delete();
 
-        return redirect()->route('players.index')->with('success', 'Player removed successfully!');
+        return redirect()->route('admin.players.index')->with('success', 'Player removed successfully!');
     }
 }

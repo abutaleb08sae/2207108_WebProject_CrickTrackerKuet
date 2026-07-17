@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Fixture;
 use App\Models\MatchScore;
+use App\Models\Player;
+use App\Models\LiveMatchState;
+use App\Models\BattingScorecard;
+use App\Models\BowlingScorecard;
 use Illuminate\Http\Request;
 
 class ScoringController extends Controller
@@ -31,11 +35,17 @@ class ScoringController extends Controller
                 'innings_two_runs' => 0,
                 'innings_two_wickets' => 0,
                 'innings_two_balls' => 0,
+                'target_runs' => null,
                 'match_result_string' => null
             ]
         );
 
-        return view('admin.scoring.dashboard', compact('fixture', 'score'));
+        $state = LiveMatchState::firstOrCreate(['fixture_id' => $fixtureId]);
+        
+        $team1Players = Player::where('team_id', $fixture->team_one_id)->get();
+        $team2Players = Player::where('team_id', $fixture->team_two_id)->get();
+
+        return view('admin.scoring.dashboard', compact('fixture', 'score', 'state', 'team1Players', 'team2Players'));
     }
 
     public function saveToss(Request $request, $fixtureId)
@@ -71,10 +81,20 @@ class ScoringController extends Controller
                          ->with('success', 'Toss recorded! Scoring engine initialized.');
     }
 
+    public function updateActivePlayers(Request $request, $fixtureId)
+    {
+        $state = LiveMatchState::where('fixture_id', $fixtureId)->firstOrFail();
+        $state->update($request->only(['batsman_on_strike_id', 'batsman_off_strike_id', 'current_bowler_id']));
+
+        return back()->with('success', 'On-field player configuration updated.');
+    }
+
     public function updateScore(Request $request, $fixtureId)
     {
         $fixture = Fixture::findOrFail($fixtureId);
         $score = MatchScore::where('fixture_id', $fixtureId)->firstOrFail();
+        $state = LiveMatchState::where('fixture_id', $fixtureId)->firstOrFail();
+        
         $action = $request->input('action');
         $currentInnings = $score->current_innings;
 
@@ -88,40 +108,95 @@ class ScoringController extends Controller
             $balls = (int)($score->innings_two_balls ?? 0);
         }
 
+        $strikerCard = null;
+        $bowlerCard = null;
+
+        if (!in_array($action, ['end_innings', 'end_match', 'reset']) && $state->batsman_on_strike_id && $state->current_bowler_id) {
+            $battingTeamId = ($currentInnings == 1) ? $score->innings_one_batting_team_id : $score->innings_two_batting_team_id;
+            $bowlingTeamId = ($battingTeamId == $fixture->team_one_id) ? $fixture->team_two_id : $fixture->team_one_id;
+
+            $strikerCard = BattingScorecard::firstOrCreate([
+                'fixture_id' => $fixtureId, 'player_id' => $state->batsman_on_strike_id, 'team_id' => $battingTeamId
+            ]);
+            $bowlerCard = BowlingScorecard::firstOrCreate([
+                'fixture_id' => $fixtureId, 'player_id' => $state->current_bowler_id, 'team_id' => $bowlingTeamId
+            ]);
+        }
+
         switch ($action) {
             case 'add_dot':
                 $balls++;
+                if ($strikerCard) $strikerCard->increment('balls_faced');
+                if ($bowlerCard) $bowlerCard->increment('balls_bowled');
                 break;
             case 'add_run':
                 $runs += 1; $balls++;
+                if ($strikerCard) { $strikerCard->increment('runs_scored', 1); $strikerCard->increment('balls_faced'); }
+                if ($bowlerCard) { $bowlerCard->increment('runs_conceded', 1); $bowlerCard->increment('balls_bowled'); }
+                $this->rotateStrike($state);
                 break;
             case 'add_run_2':
                 $runs += 2; $balls++;
+                if ($strikerCard) { $strikerCard->increment('runs_scored', 2); $strikerCard->increment('balls_faced'); }
+                if ($bowlerCard) { $bowlerCard->increment('runs_conceded', 2); $bowlerCard->increment('balls_bowled'); }
                 break;
             case 'add_run_3':
                 $runs += 3; $balls++;
+                if ($strikerCard) { $strikerCard->increment('runs_scored', 3); $strikerCard->increment('balls_faced'); }
+                if ($bowlerCard) { $bowlerCard->increment('runs_conceded', 3); $bowlerCard->increment('balls_bowled'); }
+                $this->rotateStrike($state);
                 break;
             case 'add_four':
                 $runs += 4; $balls++;
+                if ($strikerCard) { $strikerCard->increment('runs_scored', 4); $strikerCard->increment('fours_hit'); $strikerCard->increment('balls_faced'); }
+                if ($bowlerCard) { $bowlerCard->increment('runs_conceded', 4); $bowlerCard->increment('balls_bowled'); }
                 break;
             case 'add_run_5':
                 $runs += 5; $balls++;
+                if ($strikerCard) { $strikerCard->increment('runs_scored', 5); $strikerCard->increment('balls_faced'); }
+                if ($bowlerCard) { $bowlerCard->increment('runs_conceded', 5); $bowlerCard->increment('balls_bowled'); }
+                $this->rotateStrike($state);
                 break;
             case 'add_six':
                 $runs += 6; $balls++;
+                if ($strikerCard) { $strikerCard->increment('runs_scored', 6); $strikerCard->increment('sixes_hit'); $strikerCard->increment('balls_faced'); }
+                if ($bowlerCard) { $bowlerCard->increment('runs_conceded', 6); $bowlerCard->increment('balls_bowled'); }
                 break;
             case 'add_wide':
             case 'add_noball':
                 $runs += 1;
+                if ($bowlerCard) $bowlerCard->increment('runs_conceded', 1);
                 break;
             case 'add_wicket':
                 if ($wickets < 10) {
                     $wickets++;
                     $balls++;
+                    
+                    $bowlerName = Player::find($state->current_bowler_id)?->name ?? 'Bowler';
+
+                    if ($strikerCard) {
+                        $strikerCard->increment('balls_faced');
+                        $strikerCard->update([
+                            'out_status' => 'b ' . $bowlerName,
+                            'dismissal_description' => 'b ' . $bowlerName
+                        ]);
+                    }
+                    if ($bowlerCard) {
+                        $bowlerCard->increment('balls_bowled');
+                        $bowlerCard->increment('wickets_taken');
+                    }
                 }
                 break;
+                
             case 'end_innings':
                 if ($currentInnings == 1) {
+                    // Permanently capture and lock down 1st Innings snapshots before changing counters
+                    $score->innings_one_runs = $runs;
+                    $score->innings_one_wickets = $wickets;
+                    $score->innings_one_balls = $balls;
+                    $score->target_runs = $runs + 1; // Explicit target setting calculation
+
+                    // Shift tracking engine to 2nd Innings initialized values
                     $score->current_innings = 2;
                     $score->runs = 0;
                     $score->wickets = 0;
@@ -130,7 +205,11 @@ class ScoringController extends Controller
                     $score->innings_two_wickets = 0;
                     $score->innings_two_balls = 0;
                     $score->save();
-                    return redirect()->back()->with('success', '1st Innings closed! Target set.');
+
+                    // Flush active striker/bowler configurations to enforce standard re-selection 
+                    $state->update(['batsman_on_strike_id' => null, 'batsman_off_strike_id' => null, 'current_bowler_id' => null]);
+
+                    return redirect()->back()->with('success', '1st Innings closed! Target set to ' . $score->target_runs . ' runs.');
                 }
                 break;
 
@@ -165,9 +244,13 @@ class ScoringController extends Controller
                 $fixture->winner_id = $winnerId;
                 $fixture->save();
 
-                return redirect()->route('scoring.index')->with('success', 'Match scored completely! Leaderboards updated.');
+                return redirect()->route('public.home')->with('success', 'Match scored completely! Leaderboards updated.');
 
             case 'reset':
+                BattingScorecard::where('fixture_id', $fixtureId)->delete();
+                BowlingScorecard::where('fixture_id', $fixtureId)->delete();
+                $state->update(['batsman_on_strike_id' => null, 'batsman_off_strike_id' => null, 'current_bowler_id' => null]);
+
                 $score->runs = 0;
                 $score->wickets = 0;
                 $score->balls_bowled = 0;
@@ -182,9 +265,23 @@ class ScoringController extends Controller
                 $score->innings_two_runs = 0;
                 $score->innings_two_wickets = 0;
                 $score->innings_two_balls = 0;
+                $score->target_runs = null;
                 $score->match_result_string = null;
                 $score->save();
                 return redirect()->back()->with('success', 'Match completely reset.');
+        }
+
+        // Handle structural strike over rotations safely
+        if (!in_array($action, ['add_wide', 'add_noball', 'end_innings', 'end_match', 'reset'])) {
+            if ($balls > 0 && $balls % 6 === 0) {
+                $this->rotateStrike($state);
+            }
+        }
+
+        // Recalculate dynamic float values for overs cleanly before saving
+        if ($bowlerCard) {
+            $overFloat = floor($bowlerCard->balls_bowled / 6) + (($bowlerCard->balls_bowled % 6) / 10);
+            $bowlerCard->update(['overs_bowled' => $overFloat]);
         }
 
         if ($currentInnings == 1) {
@@ -206,5 +303,15 @@ class ScoringController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    private function rotateStrike($state)
+    {
+        if ($state->batsman_on_strike_id && $state->batsman_off_strike_id) {
+            $temp = $state->batsman_on_strike_id;
+            $state->batsman_on_strike_id = $state->batsman_off_strike_id;
+            $state->batsman_off_strike_id = $temp;
+            $state->save();
+        }
     }
 }

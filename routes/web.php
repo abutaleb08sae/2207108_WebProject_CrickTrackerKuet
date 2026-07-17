@@ -19,13 +19,23 @@ use App\Models\Fixture;
 |--------------------------------------------------------------------------
 */
 Route::middleware(['custom.auth'])->group(function () {
+    // Public Main Portals
     Route::get('/', [PublicHomeController::class, 'index'])->name('public.home');
     Route::get('/international-matches', [PublicHomeController::class, 'internationalMatches'])->name('public.international');
+    
+    // Core Local Match Route - Dynamic Scoreboard view
     Route::get('/matches/{id}', [PublicHomeController::class, 'matchDetails'])->name('public.matches.show');
+    
+    // Dynamic Player Profile and Statistics Tracking Route
+    Route::get('/players/{id}', [PublicHomeController::class, 'playerProfile'])->name('public.players.show');
+    
+    // Public League Tracking Tables & Media Archives
     Route::get('/standings', [PublicHomeController::class, 'standings'])->name('public.standings');
     Route::get('/fixtures', [PublicHomeController::class, 'fixtures'])->name('public.fixtures');
     Route::get('/results', [PublicHomeController::class, 'results'])->name('public.results');
     Route::get('/news', [PublicHomeController::class, 'newsArchive'])->name('public.news.index');
+    
+    // External API Match Route Tracker
     Route::get('/external-match/{id}', [PublicHomeController::class, 'showMatchDetails'])->name('public.match.details');
 
     // Auth Handlers
@@ -43,7 +53,7 @@ Route::middleware(['custom.auth'])->group(function () {
 */
 Route::middleware(['custom.auth', 'admin.strict'])->group(function () {
     
-    // Admin Landing Portal
+    // Admin Landing Portal Metrics Aggregator
     Route::get('/admin', function () {
         $teamsCount = Team::count();
         $playersCount = Player::count();
@@ -52,7 +62,7 @@ Route::middleware(['custom.auth', 'admin.strict'])->group(function () {
         return view('admin.index', compact('teamsCount', 'playersCount', 'liveMatchesCount'));
     })->name('admin.index');
 
-    // Standard Resource Controllers
+    // Standard Core Resource Controllers
     Route::resource('admin/teams', TeamController::class);
     Route::resource('admin/players', PlayerController::class);
     Route::resource('admin/fixtures', FixtureController::class);
@@ -62,7 +72,9 @@ Route::middleware(['custom.auth', 'admin.strict'])->group(function () {
     // Live Match Scoring Engine Routes
     Route::get('admin/scoring', [ScoringController::class, 'index'])->name('scoring.index');
     Route::get('admin/scoring/{fixture}', [ScoringController::class, 'showDashboard'])->name('scoring.dashboard');
+    Route::post('admin/scoring/{fixture}/toss', [ScoringController::class, 'saveToss'])->name('scoring.toss');
     Route::post('admin/scoring/{fixture}/update', [ScoringController::class, 'updateScore'])->name('scoring.update');
-    Route::post('/admin/scoring/{id}/update', [ScoringController::class, 'updateScore'])->name('scoring.update2');
-    Route::post('/admin/scoring/{id}/toss', [ScoringController::class, 'saveToss'])->name('scoring.toss');
+    
+    // Dynamic Application Updates: Management for Active On-Field Batsmen and Bowlers
+    Route::post('admin/scoring/{fixture}/active-players', [ScoringController::class, 'updateActivePlayers'])->name('scoring.active_players');
 });

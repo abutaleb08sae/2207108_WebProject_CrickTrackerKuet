@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Fixture;
 use App\Models\News;
 use App\Models\Team;
+use App\Models\Player;
+use App\Models\BattingScorecard;
+use App\Models\BowlingScorecard;
 use App\Services\CricketApiService;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -139,7 +142,7 @@ class PublicHomeController extends Controller
         if (!$match) {
             abort(404, 'Match detail stream offline.');
         }
-        return view('public.match-details', compact('match'));
+        return view('public.matches.show', compact('match'));
     }
 
     public function standings()
@@ -224,37 +227,74 @@ class PublicHomeController extends Controller
     
     public function matchDetails($id)
     {
-        // 1. Fetch fixture with related squads, teams, and innings depth
+        // 1. Fetch fixture with explicit scorecard relations optimized for your dashboard framework
         $fixture = Fixture::with([
-            'teamOne', 
-            'teamTwo', 
+            'teamOne.players', 
+            'teamTwo.players', 
             'matchScore', 
-            'innings.battingTeam', 
-            'innings.bowlingTeam',
-            'innings.battingScorecards.player',
-            'innings.battingScorecards.bowler',
-            'innings.battingScorecards.fielder',
-            'innings.bowlingScorecards.player',
-            'innings.balls.batsman',
-            'innings.balls.bowler',
-            'squads.player'
+            'battingScorecards.player',
+            'bowlingScorecards.player'
         ])->findOrFail($id);
 
-        // 2. Fallback mock builder if no detailed innings exist yet (so page works immediately)
-        if ($fixture->innings->isEmpty() && $fixture->status === 'LIVE') {
-            // We dynamically calculate placeholder statistics metrics to ensure visual completion
-            $currentRunRate = 5.42;
-            $requiredRunRate = 11.33;
-        } else {
-            $currentRunRate = 0;
-            $requiredRunRate = 0;
-            if (($firstInnings = $fixture->innings->first())) {
-                $totalBalls = $firstInnings->overs_bowled_balls ?: 1;
-                $currentRunRate = round(($firstInnings->total_runs / ($totalBalls / 6)), 2);
+        // 2. Dynamic fallbacks calculated directly out of the primary matchScore metrics
+        $currentRunRate = 0;
+        $requiredRunRate = 0;
+
+        if ($fixture->matchScore && $fixture->matchScore->balls_bowled > 0) {
+            $currentRunRate = round(($fixture->matchScore->runs / ($fixture->matchScore->balls_bowled / 6)), 2);
+            
+            if ($fixture->matchScore->target_runs && ($fixture->matchScore->total_overs * 6) > $fixture->matchScore->balls_bowled) {
+                $remainingRuns = $fixture->matchScore->target_runs - $fixture->matchScore->runs;
+                $remainingOvers = ($fixture->matchScore->total_overs * 6 - $fixture->matchScore->balls_bowled) / 6;
+                $requiredRunRate = $remainingRuns > 0 ? round($remainingRuns / $remainingOvers, 2) : 0;
             }
         }
 
-        return view('public.match-details', compact('fixture', 'currentRunRate', 'requiredRunRate'));
+        // 3. Render the dynamic view
+        return view('public.matches.show', compact('fixture', 'currentRunRate', 'requiredRunRate'));
     }
 
+    /**
+     * Generates real-time aggregations for player career history cards
+     */
+    public function playerProfile($id)
+    {
+        $player = Player::with('team')->findOrFail($id);
+
+        // --- BATTING LEDGER CALCULATIONS ---
+        $battingRecords = BattingScorecard::where('player_id', $id)->get();
+        
+        $stats = [
+            'matches'    => $battingRecords->count(),
+            'runs'       => $battingRecords->sum('runs'),
+            'balls'      => $battingRecords->sum('balls_faced'),
+            'fours'      => $battingRecords->sum('fours'),
+            'sixes'      => $battingRecords->sum('sixes'),
+            'highest'    => $battingRecords->max('runs') ?? 0,
+            'innings'    => $battingRecords->where('balls_faced', '>', 0)->count(),
+            'not_outs'   => $battingRecords->where('status', 'Not Out')->count(),
+        ];
+
+        $dismissals = $stats['innings'] - $stats['not_outs'];
+        $stats['average'] = $dismissals > 0 ? round($stats['runs'] / $dismissals, 2) : $stats['runs'];
+        $stats['strike_rate'] = $stats['balls'] > 0 ? round(($stats['runs'] / $stats['balls']) * 100, 2) : 0.00;
+
+        // --- BOWLING LEDGER CALCULATIONS ---
+        $bowlingRecords = BowlingScorecard::where('player_id', $id)->get();
+
+        $bowling = [
+            'wickets' => $bowlingRecords->sum('wickets'),
+            'runs_conceded' => $bowlingRecords->sum('runs'),
+            'balls_bowled'  => $bowlingRecords->sum('balls_bowled'),
+        ];
+
+        $overs = floor($bowling['balls_bowled'] / 6) + (($bowling['balls_bowled'] % 6) / 10);
+        $totalOversDecimal = $bowling['balls_bowled'] / 6;
+        
+        $bowling['economy'] = $totalOversDecimal > 0 ? round($bowling['runs_conceded'] / $totalOversDecimal, 2) : 0.00;
+        $bowling['average'] = $bowling['wickets'] > 0 ? round($bowling['runs_conceded'] / $bowling['wickets'], 2) : 0.00;
+        $bowling['overs'] = $overs;
+
+        return view('public.player_profile', compact('player', 'stats', 'bowling', 'battingRecords'));
+    }
 }

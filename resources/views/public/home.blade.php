@@ -20,15 +20,21 @@
                     <div class="col-12 col-md-6 col-lg-4">
                         <div class="cric-card p-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="badge bg-danger text-white px-2 py-1 uppercase small"><i class="fa-solid fa-circle small me-1"></i> LIVE NOW</span>
-                                <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i> {{ $match->venue }}</small>
+                                <span class="badge bg-danger text-white px-2 py-1 uppercase small">
+                                    <i class="fa-solid fa-circle small me-1"></i> LIVE NOW
+                                </span>
+                                <small class="text-muted">
+                                    <i class="fa-solid fa-location-dot me-1"></i> {{ $match->venue }}
+                                </small>
                             </div>
                             <div class="d-flex flex-column gap-2 my-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="fw-bold text-dark fs-5">{{ $match->teamOne->name }}</span>
                                     <span class="fw-bold fs-5 text-dark">
                                         {{ $match->matchScore->runs ?? 0 }}/{{ $match->matchScore->wickets ?? 0 }}
-                                        <small class="text-muted fw-normal fs-7">({{ floor(($match->matchScore->balls_bowled ?? 0) / 6) }}.{{ ($match->matchScore->balls_bowled ?? 0) % 6 }} ov)</small>
+                                        <small class="text-muted fw-normal fs-7">
+                                            ({{ floor(($match->matchScore->balls_bowled ?? 0) / 6) }}.{{ ($match->matchScore->balls_bowled ?? 0) % 6 }} ov)
+                                        </small>
                                     </span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
@@ -37,7 +43,9 @@
                                 </div>
                             </div>
                             <div class="border-top pt-3 mt-2">
-                                <small class="text-danger fw-semibold"><i class="fa-solid fa-clock me-1"></i> Innings 1 coverage is active.</small>
+                                <small class="text-danger fw-semibold">
+                                    <i class="fa-solid fa-clock me-1"></i> Innings 1 coverage is active.
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -45,7 +53,7 @@
                     <div class="col-12">
                         <div class="bg-white rounded-3 border p-5 text-center text-muted shadow-xs">
                             <i class="fa-solid fa-satellite-dish fs-1 text-muted mb-3 d-block"></i>
-                            No active match feeds are live right now. Active coverage dashboards appear automatically.
+                            No active local match feeds are live right now. Active coverage dashboards appear automatically.
                         </div>
                     </div>
                 @endforelse

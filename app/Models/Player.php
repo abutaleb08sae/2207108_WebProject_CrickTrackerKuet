@@ -3,17 +3,32 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Player extends Model
 {
     protected $fillable = [
-        'team_id', 'name', 'role', 'student_id', 
-        'matches_played', 'total_runs', 'total_wickets'
+        'team_id', 'name', 'photo_path', 'role', 'nationality', 
+        'batting_style', 'bowling_style', 'date_of_birth', 
+        'height', 'jersey_number', 'debut_date', 'biography'
     ];
 
-    public function team(): BelongsTo
+    public function team()
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function careerStats()
+    {
+        return $this->hasMany(PlayerStat::class);
+    }
+
+    public function battingScorecards()
+    {
+        return $this->hasMany(BattingScorecard::class);
+    }
+
+    public function bowlingScorecards()
+    {
+        return $this->hasMany(BowlingScorecard::class);
     }
 }

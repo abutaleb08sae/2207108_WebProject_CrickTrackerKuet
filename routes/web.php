@@ -14,10 +14,12 @@ use App\Models\Fixture;
 
 Route::middleware(['custom.auth'])->group(function () {
     Route::get('/', [PublicHomeController::class, 'index'])->name('public.home');
+    Route::get('/international-matches', [PublicHomeController::class, 'internationalMatches'])->name('public.international');
     Route::get('/standings', [PublicHomeController::class, 'standings'])->name('public.standings');
     Route::get('/fixtures', [PublicHomeController::class, 'fixtures'])->name('public.fixtures');
     Route::get('/results', [PublicHomeController::class, 'results'])->name('public.results');
     Route::get('/news', [PublicHomeController::class, 'newsArchive'])->name('public.news.index');
+    Route::get('/external-match/{id}', [PublicHomeController::class, 'showMatchDetails'])->name('public.match.details');
 
     Route::get('/signin', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/signin', [AuthController::class, 'login']);

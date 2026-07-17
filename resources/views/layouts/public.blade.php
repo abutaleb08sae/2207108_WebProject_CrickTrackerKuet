@@ -80,6 +80,7 @@
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <div class="navbar-nav mx-auto gap-4 my-2 my-lg-0">
                     <a href="{{ route('public.home') }}" class="nav-link-custom {{ Request::routeIs('public.home') ? 'active' : '' }}"><i class="fa-solid fa-satellite-dish me-1"></i> Live Center</a>
+                    <a href="{{ route('public.international') }}" class="nav-link-custom {{ Request::routeIs('public.international') ? 'active' : '' }}"><i class="fa-solid fa-globe me-1"></i> International Match</a>
                     <a href="{{ route('public.standings') }}" class="nav-link-custom {{ Request::routeIs('public.standings') ? 'active' : '' }}"><i class="fa-solid fa-list-ol me-1"></i> Points Table</a>
                     <a href="{{ route('public.fixtures') }}" class="nav-link-custom {{ Request::routeIs('public.fixtures') ? 'active' : '' }}"><i class="fa-solid fa-calendar-days me-1"></i> Schedules</a>
                     <a href="{{ route('public.results') }}" class="nav-link-custom {{ Request::routeIs('public.results') ? 'active' : '' }}"><i class="fa-solid fa-square-poll-horizontal me-1"></i> Recent Results</a>

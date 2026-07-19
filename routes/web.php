@@ -66,33 +66,80 @@ Route::middleware(['custom.auth'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Strict Admin Dashboard Routes
+| Strict Admin Dashboard Routes (Standard Namespacing)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['custom.auth', 'admin.strict'])->group(function () {
+Route::middleware(['custom.auth', 'admin.strict'])->prefix('admin')->name('admin.')->group(function () {
     
     // Admin Landing Portal Metrics Aggregator
-    Route::get('/admin', function () {
+    Route::get('/', function () {
         $teamsCount = Team::count();
         $playersCount = Player::count();
         $liveMatchesCount = Fixture::where('status', 'LIVE')->count();
 
         return view('admin.index', compact('teamsCount', 'playersCount', 'liveMatchesCount'));
-    })->name('admin.index');
+    })->name('index');
 
-    // Standard Core Resource Controllers
-    Route::resource('admin/teams', TeamController::class);
-    Route::resource('admin/players', PlayerController::class);
-    Route::resource('admin/fixtures', FixtureController::class);
-    Route::resource('admin/games', GameController::class);
-    Route::resource('admin/news', AdminNewsController::class, ['as' => 'admin']);
+    // Standard Core Resource Controllers (Automatically named admin.players.*, admin.teams.*, etc.)
+    Route::resource('teams', TeamController::class);
+    Route::resource('players', PlayerController::class); 
+    Route::resource('fixtures', FixtureController::class);
+    Route::resource('games', GameController::class);
+    Route::resource('news', AdminNewsController::class);
 
     // Live Match Scoring Engine Routes
-    Route::get('admin/scoring', [ScoringController::class, 'index'])->name('scoring.index');
-    Route::get('admin/scoring/{fixture}', [ScoringController::class, 'showDashboard'])->name('scoring.dashboard');
-    Route::post('admin/scoring/{fixture}/toss', [ScoringController::class, 'saveToss'])->name('scoring.toss');
-    Route::post('admin/scoring/{fixture}/update', [ScoringController::class, 'updateScore'])->name('scoring.update');
+    Route::get('scoring', [ScoringController::class, 'index'])->name('scoring.index');
+    Route::get('scoring/{fixture}', [ScoringController::class, 'showDashboard'])->name('scoring.dashboard');
+    Route::post('scoring/{fixture}/toss', [ScoringController::class, 'saveToss'])->name('scoring.toss');
+    Route::post('scoring/{fixture}/update', [ScoringController::class, 'updateScore'])->name('scoring.update');
     
     // Dynamic Application Updates: Management for Active On-Field Batsmen and Bowlers
-    Route::post('admin/scoring/{fixture}/active-players', [ScoringController::class, 'updateActivePlayers'])->name('scoring.active_players');
+    Route::post('scoring/{fixture}/active-players', [ScoringController::class, 'updateActivePlayers'])->name('scoring.active_players');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Legacy & Unprefixed View Blade Compatibility Layer (Aliases)
+|--------------------------------------------------------------------------
+| These routes provide fallback alias names to prevent 500 crashes in older
+| blade views that request names without the 'admin.' prefix wrapper.
+*/
+Route::middleware(['custom.auth', 'admin.strict'])->prefix('admin')->group(function () {
+    // Players Aliases
+    Route::get('/players', [PlayerController::class, 'index'])->name('players.index');
+    Route::get('/players/create', [PlayerController::class, 'create'])->name('players.create');
+    Route::post('/players', [PlayerController::class, 'store'])->name('players.store');
+    Route::get('/players/{player}', [PlayerController::class, 'show'])->name('players.show');
+    Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])->name('players.edit');
+    Route::put('/players/{player}', [PlayerController::class, 'update'])->name('players.update');
+    Route::delete('/players/{player}', [PlayerController::class, 'destroy'])->name('players.destroy');
+
+    // Teams Aliases
+    Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
+    Route::get('/teams/create', [TeamController::class, 'create'])->name('teams.create');
+    Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
+    Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
+    Route::get('/teams/{team}/edit', [TeamController::class, 'edit'])->name('teams.edit');
+    Route::put('/teams/{team}', [TeamController::class, 'update'])->name('teams.update');
+    Route::delete('/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
+
+    // Fixtures Aliases
+    Route::get('/fixtures', [FixtureController::class, 'index'])->name('fixtures.index');
+    Route::get('/fixtures/create', [FixtureController::class, 'create'])->name('fixtures.create');
+    Route::post('/fixtures', [FixtureController::class, 'store'])->name('fixtures.store');
+    Route::get('/fixtures/{fixture}', [FixtureController::class, 'show'])->name('fixtures.show');
+    Route::get('/fixtures/{fixture}/edit', [FixtureController::class, 'edit'])->name('fixtures.edit');
+    Route::put('/fixtures/{fixture}', [FixtureController::class, 'update'])->name('fixtures.update');
+    Route::delete('/fixtures/{fixture}', [FixtureController::class, 'destroy'])->name('fixtures.destroy');
+    
+    // Scoring Engine Aliases (UPDATED: Added missing active-players, toss, and score updates)
+    Route::get('/scoring', [ScoringController::class, 'index'])->name('scoring.index');
+    Route::get('/scoring/{fixture}', [ScoringController::class, 'showDashboard'])->name('scoring.dashboard');
+    Route::post('/scoring/{fixture}/toss', [ScoringController::class, 'saveToss'])->name('scoring.toss');
+    Route::post('/scoring/{fixture}/update', [ScoringController::class, 'updateScore'])->name('scoring.update');
+    Route::post('/scoring/{fixture}/active-players', [ScoringController::class, 'updateActivePlayers'])->name('scoring.active_players');
+    
+    // News Aliases 
+    Route::get('/news', [AdminNewsController::class, 'index'])->name('news.index');
+    Route::get('/news-fallback-explicit', [AdminNewsController::class, 'index'])->name('admin.news.index');
 });

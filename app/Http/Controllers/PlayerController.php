@@ -88,7 +88,8 @@ class PlayerController extends Controller
 
         Player::create($validated);
 
-        return redirect()->route('admin.players.index')->with('success', 'Player registered successfully!');
+        // FIXED: Route target mapped to legacy compatibility alias context
+        return redirect()->route('players.index')->with('success', 'Player registered successfully!');
     }
 
     /**
@@ -176,7 +177,8 @@ class PlayerController extends Controller
 
         $player->update($validated);
 
-        return redirect()->route('admin.players.index')->with('success', 'Player profile updated successfully!');
+        // FIXED: Route target mapped to legacy compatibility alias context
+        return redirect()->route('players.index')->with('success', 'Player profile updated successfully!');
     }
 
     /**
@@ -193,6 +195,7 @@ class PlayerController extends Controller
 
         $player->delete();
 
-        return redirect()->route('admin.players.index')->with('success', 'Player removed successfully!');
+        // FIXED: Route target mapped to legacy compatibility alias context
+        return redirect()->route('players.index')->with('success', 'Player removed successfully!');
     }
 }

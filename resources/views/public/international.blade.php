@@ -18,7 +18,7 @@
         border-top: 4px solid #0284c7;
         border-radius: 12px;
         padding: 28px 32px;
-        margin-bottom: 40px;
+        margin-bottom: 24px;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         display: flex;
         justify-content: space-between;
@@ -64,6 +64,41 @@
         50% { opacity: 1; transform: scale(1.1); }
         100% { opacity: 0.4; transform: scale(0.95); }
     }
+    
+    /* Segment Control / Toggle Buttons Style */
+    .nav-toggle-container {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 40px;
+    }
+    .toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 14px;
+        text-decoration: none !important;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+    .toggle-btn-active {
+        background-color: #0284c7;
+        color: #ffffff !important;
+        box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2);
+    }
+    .toggle-btn-inactive {
+        background-color: #ffffff;
+        color: #475569 !important;
+        border-color: #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .toggle-btn-inactive:hover {
+        background-color: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
     .section-heading {
         font-size: 24px;
         font-weight: 800;
@@ -182,7 +217,6 @@
     .no-data-title { font-size: 16px; font-weight: 700; color: #334155; }
     .no-data-desc { color: #64748b; font-size: 13px; margin-top: 4px; }
 
-    /* Beautiful CSS Skeleton loading spaces */
     .skeleton-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
@@ -207,6 +241,7 @@
 <div class="cricket-dashboard-wrapper">
     <div class="cricket-container">
         
+        <!-- Dashboard Main Header -->
         <div class="dashboard-header">
             <div class="header-left">
                 <h1>International Match Center</h1>
@@ -215,6 +250,16 @@
             <div class="live-badge">
                 <span class="live-pulse-dot"></span> LIVE ENGINE ACTIVE
             </div>
+        </div>
+
+        <!-- Interactive Module Sub-Navigation Options Toggle -->
+        <div class="nav-toggle-container">
+            <a href="{{ route('public.matches.international') }}" class="toggle-btn toggle-btn-active">
+                <span style="font-size: 16px;">🏏</span> Live Scores
+            </a>
+            <a href="{{ route('public.cricket.news') }}" class="toggle-btn toggle-btn-inactive">
+                <span style="font-size: 16px;">📰</span> Latest News
+            </a>
         </div>
 
         <!-- Live Matches Block -->
@@ -255,7 +300,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Standard Asynchronous Fetch Execution Requirement
     fetch("{{ url('/api/international-matches-data') }}")
         .then(response => {
             if (!response.ok) throw new Error("API Channel Offline");

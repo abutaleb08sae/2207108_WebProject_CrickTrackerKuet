@@ -9,6 +9,7 @@ use App\Http\Controllers\PublicHomeController;
 use App\Http\Controllers\AdminNewsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\GameController;
+use App\Http\Controllers\Public\CricketNewsController; // Global News API Controller
 use App\Models\Team;
 use App\Models\Player;
 use App\Models\Fixture;
@@ -21,10 +22,18 @@ use App\Models\Fixture;
 Route::middleware(['custom.auth'])->group(function () {
     // Public Main Portals
     Route::get('/', [PublicHomeController::class, 'index'])->name('public.home');
+    
+    // Core Route (Fixes the public navbar layout file crash)
     Route::get('/international-matches', [PublicHomeController::class, 'internationalMatches'])->name('public.international');
     
-    // Asynchronous JavaScript AJAX Endpoint for real-time Cricbuzz tracking
+    // Alias Route (Fixes the international.blade.php sub-nav button crash)
+    Route::get('/international-matches/live', [PublicHomeController::class, 'internationalMatches'])->name('public.matches.international');
+    
+    // Asynchronous JavaScript AJAX Endpoint for real-time tracking
     Route::get('/api/international-matches-data', [PublicHomeController::class, 'getInternationalMatchesData'])->name('public.international.data');
+    
+    // New Dedicated International News API Integration Endpoint
+    Route::get('/international/news', [CricketNewsController::class, 'index'])->name('public.cricket.news');
     
     // Core Local Match Route - Dynamic Scoreboard view
     Route::get('/matches/{id}', [PublicHomeController::class, 'matchDetails'])->name('public.matches.show');

@@ -44,6 +44,9 @@ Route::middleware(['custom.auth'])->group(function () {
     // Dynamic Player Profile and Statistics Tracking Route
     Route::get('/players/{id}', [PublicHomeController::class, 'playerProfile'])->name('public.players.show');
     
+    // Dynamic Team Profile, Squad Roster, and History Tracking Route
+    Route::get('/teams/{id}', [PublicHomeController::class, 'teamProfile'])->name('public.teams.show');
+    
     // Public League Tracking Tables & Media Archives
     Route::get('/standings', [PublicHomeController::class, 'standings'])->name('public.standings');
     Route::get('/fixtures', [PublicHomeController::class, 'fixtures'])->name('public.fixtures');

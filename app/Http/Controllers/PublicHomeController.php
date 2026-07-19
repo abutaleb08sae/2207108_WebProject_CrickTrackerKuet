@@ -176,7 +176,7 @@ class PublicHomeController extends Controller
 
         foreach ($teams as $team) {
             $standings[$team->id] = [
-                'name' => $team->name, 'slug' => $team->slug, 'played' => 0, 'won' => 0, 'lost' => 0, 'tied' => 0, 'points' => 0
+                'id' => $team->id, 'name' => $team->name, 'slug' => $team->slug, 'played' => 0, 'won' => 0, 'lost' => 0, 'tied' => 0, 'points' => 0
             ];
         }
 
@@ -284,12 +284,16 @@ class PublicHomeController extends Controller
             return view('public.matches.show', compact('match'));
         }
 
+        // FIX: Preload commentaries relations automatically sorted by timeline chronology
         $fixture = Fixture::with([
             'teamOne.players', 
             'teamTwo.players', 
             'matchScore', 
             'battingScorecards.player',
-            'bowlingScorecards.player'
+            'bowlingScorecards.player',
+            'commentaries' => function($query) {
+                $query->orderBy('over_number', 'desc')->orderBy('created_at', 'desc');
+            }
         ])->findOrFail($id);
 
         $currentRunRate = 0;
@@ -361,5 +365,20 @@ class PublicHomeController extends Controller
         $bowling['average'] = $bowling['wickets'] > 0 ? round($bowling['runs_conceded'] / $bowling['wickets'], 2) : ($player->bowling_average ?? 0.00);
 
         return view('public.player_profile', compact('player', 'stats', 'bowling', 'battingRecords'));
+    }
+
+    /**
+     * Display a team profile, active squad roster, and historical match logs.
+     */
+    public function teamProfile($id)
+    {
+        $team = Team::with('players')->findOrFail($id);
+        
+        $fixtures = Fixture::where('team_one_id', $id)
+            ->orWhere('team_two_id', $id)
+            ->orderBy('match_datetime', 'desc')
+            ->get();
+
+        return view('public.teams.show', compact('team', 'fixtures'));
     }
 }

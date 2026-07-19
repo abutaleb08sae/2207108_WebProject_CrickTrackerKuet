@@ -29,8 +29,11 @@
                 <tbody class="fs-6">
                     @foreach($standings as $teamId => $stats)
                         <tr>
-                            <td class="text-start ps-4 fw-bold text-dark">
-                                {{ $stats['name'] }} <span class="badge bg-light text-secondary border ms-2 small">{{ $stats['slug'] }}</span>
+                            <td class="text-start ps-4 fw-bold">
+                                <a href="{{ route('public.teams.show', $teamId) }}" class="text-decoration-none text-primary link-hover-effect">
+                                    {{ $stats['name'] }}
+                                </a>
+                                <span class="badge bg-light text-secondary border ms-2 small">{{ $stats['slug'] }}</span>
                             </td>
                             <td class="fw-medium text-secondary">{{ $stats['played'] }}</td>
                             <td class="text-success fw-bold">{{ $stats['won'] }}</td>
@@ -43,4 +46,11 @@
             </table>
         </div>
     </div>
+
+    <style>
+        .link-hover-effect:hover {
+            color: #0dcaf0 !important;
+            text-decoration: underline !important;
+        }
+    </style>
 @endsection

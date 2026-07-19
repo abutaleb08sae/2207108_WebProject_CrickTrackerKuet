@@ -56,8 +56,13 @@
                     <p class="text-warning fw-bold mb-1">
                         @if($fixture->matchScore && $fixture->matchScore->match_result_string)
                             🎉 {{ $fixture->matchScore->match_result_string }}
-                        @elseif($fixture->toss_winner_id)
-                            Toss: {{ $fixture->toss_winner_id == $fixture->team_one_id ? $fixture->teamOne?->name : $fixture->teamTwo?->name }} won & elected to {{ $fixture->toss_decision }} first
+                        @elseif($fixture->toss_winner_id || ($fixture->matchScore && isset($fixture->matchScore->toss_winner_id)))
+                            @php
+                                $tossWinnerId = $fixture->toss_winner_id ?? $fixture->matchScore->toss_winner_id;
+                                $tossDecision = $fixture->toss_decision ?? $fixture->matchScore->toss_decision ?? 'bat';
+                                $tossWinnerName = ($tossWinnerId == $fixture->team_one_id) ? $fixture->teamOne?->name : $fixture->teamTwo?->name;
+                            @endphp
+                            🪙 Toss: {{ $tossWinnerName }} won & elected to {{ $tossDecision }} first
                         @else
                             Toss details pending
                         @endif

@@ -52,8 +52,6 @@
         align-items: center;
         gap: 10px;
     }
-    
-    /* Segment Control / Toggle Buttons Style */
     .nav-toggle-container {
         display: flex;
         gap: 12px;
@@ -86,8 +84,6 @@
         background-color: #f8fafc;
         border-color: #cbd5e1;
     }
-
-    /* News Cards Grid layout */
     .news-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -188,23 +184,44 @@
         text-align: center;
         grid-column: 1 / -1;
     }
+
+    /* Skeleton UI Shimmer Box definitions */
+    .skeleton-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        height: 380px;
+        position: relative;
+        overflow: hidden;
+    }
+    .skeleton-box::after {
+        content: "";
+        position: absolute;
+        top: 0; right: 0; bottom: 0; left: 0;
+        transform: translateX(-100%);
+        background-image: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 20%, rgba(255,255,255,0.6) 60%, rgba(255,255,255,0) 100%);
+        animation: loading-shimmer 1.5s infinite;
+    }
+    @keyframes loading-shimmer {
+        100% { transform: translateX(100%); }
+    }
 </style>
 
 <div class="cricket-dashboard-wrapper">
     <div class="cricket-container">
         
-        <!-- Dashboard Header -->
+        <!-- Header Matrix -->
         <div class="dashboard-header">
             <div class="header-left">
                 <h1>International Match Center</h1>
                 <p class="header-subtitle">Real-time international tournament coverage, live feeds, and fixtures.</p>
             </div>
             <div class="live-badge">
-                📰 NEWS LIVE ENGINE
+                📰 NEWS API CLIENT ACTIVE
             </div>
         </div>
 
-        <!-- Interactive Navigation Module Options Toggle -->
+        <!-- Navigation Toggles -->
         <div class="nav-toggle-container">
             <a href="{{ route('public.international') }}" class="toggle-btn toggle-btn-inactive">
                 <span style="font-size: 16px;">🏏</span> Live Scores
@@ -214,48 +231,92 @@
             </a>
         </div>
 
-        <!-- News Content Grid -->
-        <div class="news-grid">
-            @forelse($articles as $article)
-                @if(empty($article['title']) || $article['title'] == '[Removed]')
-                    @continue
-                @endif
-
-                <div class="news-card">
-                    <div class="image-wrapper">
-                        @if(!empty($article['urlToImage']))
-                            <img src="{{ $article['urlToImage'] }}" class="news-img" alt="News Image">
-                        @else
-                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                                <span style="font-size: 28px;">🏏</span>
-                            </div>
-                        @endif
-                        <span class="source-tag">{{ $article['source']['name'] ?? 'Cricket Feed' }}</span>
-                    </div>
-
-                    <div class="news-body">
-                        <div class="news-time">
-                            📅 {{ \Carbon\Carbon::parse($article['publishedAt'])->diffForHumans() }}
-                        </div>
-                        <h3 class="news-title">{{ Str::limit($article['title'], 70) }}</h3>
-                        <p class="news-desc">{{ Str::limit($article['description'] ?? 'Click below to view full summary detail logs.', 130) }}</p>
-                    </div>
-
-                    <div class="news-footer">
-                        <a href="{{ $article['url'] }}" target="_blank" class="read-btn">
-                            Read Full Article ↗
-                        </a>
-                    </div>
-                </div>
-            @empty
-                <div class="no-data-card">
-                    <span style="font-size: 36px;">⚠️</span>
-                    <h5 class="fw-bold mt-2">No News Feeds Available</h5>
-                    <p class="text-muted small mb-0">We are currently unable to retrieve external global news aggregates. Please try refreshing again later.</p>
-                </div>
-            @endforelse
+        <!-- Async Dynamic Targets Grid Wrapper container -->
+        <div id="ajax-news-grid" class="news-grid">
+            <!-- Skeleton cards show instantly while data transfers -->
+            <div class="skeleton-box"></div>
+            <div class="skeleton-box"></div>
+            <div class="skeleton-box"></div>
         </div>
 
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Fire structural AJAX execution pipeline target
+    fetch("{{ url('/api/international-news-data') }}")
+        .then(response => {
+            if (!response.ok) throw new Error("External feed system error");
+            return response.json();
+        })
+        .then(articles => {
+            renderNewsLayout(articles);
+        })
+        .catch(error => {
+            console.error("AJAX Engine Context Trace Error:", error);
+            document.getElementById('ajax-news-grid').innerHTML = `
+                <div class="no-data-card">
+                    <span style="font-size: 36px;">⚠️</span>
+                    <h5 class="fw-bold mt-2">Synchronization Interrupted</h5>
+                    <p class="text-muted small mb-0">Failed to establish a asynchronous background connection to the external media API layout stream.</p>
+                </div>`;
+        });
+});
+
+function renderNewsLayout(articles) {
+    const targetGrid = document.getElementById('ajax-news-grid');
+    
+    if (!articles || articles.length === 0) {
+        targetGrid.innerHTML = `
+            <div class="no-data-card">
+                <span style="font-size: 36px;">🏏</span>
+                <h5 class="fw-bold mt-2">No Headlines Found</h5>
+                <p class="text-muted small mb-0">No international cricket news reports matched your lookup configuration criteria right now.</p>
+            </div>`;
+        return;
+    }
+
+    let compiledHtml = '';
+    
+    articles.forEach(article => {
+        // Enforce structural data sanitation cleanup constraints
+        if (!article.title || article.title === '[Removed]') return;
+
+        let thumbnailImg = article.urlToImage 
+            ? `<img src="${article.urlToImage}" class="news-img" alt="News Feed thumbnail">`
+            : `<div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light"><span style="font-size: 28px;">🏏</span></div>`;
+
+        let snippetText = article.description ? article.description : 'Click details indicator below to process article entry content stream.';
+        if (snippetText.length > 130) snippetText = snippetText.substring(0, 130) + '...';
+
+        let explicitTitle = article.title.length > 70 ? article.title.substring(0, 70) + '...' : article.title;
+        
+        // Calculate dynamic timing formats purely via JavaScript fallback constraints
+        let timeLabel = 'Recently Updated';
+        if(article.publishedAt) {
+            let publishedTime = new Date(article.publishedAt);
+            timeLabel = publishedTime.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+        }
+
+        compiledHtml += `
+            <div class="news-card">
+                <div class="image-wrapper">
+                    ${thumbnailImg}
+                    <span class="source-tag">${article.source.name || 'Cricket Update'}</span>
+                </div>
+                <div class="news-body">
+                    <div class="news-time">📅 ${timeLabel}</div>
+                    <h3 class="news-title">${explicitTitle}</h3>
+                    <p class="news-desc">${snippetText}</p>
+                </div>
+                <div class="news-footer">
+                    <a href="${article.url}" target="_blank" class="read-btn">Read Full Article ↗</a>
+                </div>
+            </div>`;
+    });
+
+    targetGrid.innerHTML = compiledHtml;
+}
+</script>
 @endsection

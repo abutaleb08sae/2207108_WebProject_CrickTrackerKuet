@@ -32,8 +32,11 @@ Route::middleware(['custom.auth'])->group(function () {
     // Asynchronous JavaScript AJAX Endpoint for real-time tracking
     Route::get('/api/international-matches-data', [PublicHomeController::class, 'getInternationalMatchesData'])->name('public.international.data');
     
-    // New Dedicated International News API Integration Endpoint
+    // Dedicated International News Skeleton View Route
     Route::get('/international/news', [CricketNewsController::class, 'index'])->name('public.cricket.news');
+
+    // Asynchronous JavaScript AJAX Endpoint for Cricket News API Engine
+    Route::get('/api/international-news-data', [CricketNewsController::class, 'getNewsData'])->name('public.cricket.news.data');
     
     // Core Local Match Route - Dynamic Scoreboard view
     Route::get('/matches/{id}', [PublicHomeController::class, 'matchDetails'])->name('public.matches.show');

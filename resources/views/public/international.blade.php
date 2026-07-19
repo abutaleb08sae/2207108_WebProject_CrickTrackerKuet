@@ -3,39 +3,39 @@
 @section('content')
 <style>
     .cricket-dashboard-wrapper {
-        background-color: #f8fafc;
-        padding: 40px 20px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        color: #1e293b;
+        background-color: #f1f5f9;
+        padding: 48px 20px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #0f172a;
         text-align: left;
     }
     .cricket-container {
-        max-w: 1200px;
+        max-width: 1200px;
         margin: 0 auto;
     }
     .dashboard-header {
         background: #ffffff;
         border-top: 4px solid #0284c7;
         border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 32px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.05);
+        padding: 28px 32px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 16px;
+        gap: 20px;
     }
     .header-left h1 {
-        font-size: 28px;
+        font-size: 32px;
         font-weight: 800;
         color: #0f172a;
         margin: 0;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.75px;
     }
-    .header-left p {
+    .header-subtitle {
         color: #64748b;
-        font-size: 14px;
+        font-size: 15px;
         margin: 6px 0 0 0;
         font-weight: 500;
     }
@@ -43,75 +43,78 @@
         background-color: #fef2f2;
         color: #dc2626;
         border: 1px solid #fee2e2;
-        padding: 8px 16px;
-        border-radius: 8px;
+        padding: 10px 20px;
+        border-radius: 9999px;
         font-weight: 700;
         font-size: 12px;
-        letter-spacing: 0.5px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .live-pulse-dot {
-        width: 8px;
-        height: 8px;
-        background-color: #dc2626;
-        border-radius: 50%;
-        display: inline-block;
-        animation: pulse-animation 1.5s infinite;
-    }
-    @keyframes pulse-animation {
-        0% { opacity: 0.3; }
-        50% { opacity: 1; }
-        100% { opacity: 0.3; }
-    }
-    .section-heading {
-        font-size: 20px;
-        font-weight: 800;
-        color: #1e293b;
-        margin: 32px 0 20px 0;
+        letter-spacing: 0.75px;
         display: flex;
         align-items: center;
         gap: 10px;
     }
+    .live-pulse-dot {
+        width: 10px;
+        height: 10px;
+        background-color: #dc2626;
+        border-radius: 50%;
+        animation: pulse-animation 1.8s infinite;
+    }
+    @keyframes pulse-animation {
+        0% { opacity: 0.4; transform: scale(0.95); }
+        50% { opacity: 1; transform: scale(1.1); }
+        100% { opacity: 0.4; transform: scale(0.95); }
+    }
+    .section-heading {
+        font-size: 24px;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 48px 0 24px 0;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
     .heading-bar {
-        width: 4px;
-        height: 22px;
-        border-radius: 4px;
-        display: inline-block;
+        width: 6px;
+        height: 26px;
+        border-radius: 99px;
     }
     .match-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 24px;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 28px;
+    }
+    .match-link-wrapper {
+        text-decoration: none !important;
+        display: block;
     }
     .match-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 14px;
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        height: 100%;
     }
-    .match-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    .match-link-wrapper:hover .match-card {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
     }
     .card-header {
         background: #f8fafc;
-        padding: 14px 18px;
+        padding: 18px 24px;
         border-bottom: 1px solid #f1f5f9;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
     .series-title {
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 700;
-        color: #64748b;
+        color: #475569;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         white-space: nowrap;
@@ -121,54 +124,60 @@
     }
     .format-badge {
         background: #e2e8f0;
-        color: #475569;
-        padding: 3px 8px;
-        border-radius: 6px;
-        font-size: 10px;
+        color: #334155;
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 11px;
         font-weight: 800;
     }
     .card-body {
-        padding: 20px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        background: #ffffff;
     }
     .team-score-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 14px;
-    }
-    .team-score-row:last-child {
-        margin-bottom: 0;
     }
     .team-name {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 700;
-        color: #334155;
+        color: #1e293b;
     }
     .score-display {
-        font-size: 17px;
+        font-size: 19px;
         font-weight: 800;
         color: #0f172a;
-        font-family: monospace, sans-serif;
+        font-family: monospace;
+    }
+    .overs-display {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 600;
+        margin-left: 4px;
     }
     .not-started {
-        font-size: 12px;
+        font-size: 13px;
         color: #94a3b8;
         font-weight: 600;
-        font-family: sans-serif;
     }
     .card-footer {
-        padding: 12px 18px;
-        font-size: 12px;
+        padding: 16px 24px;
+        font-size: 14px;
         font-weight: 700;
         border-top: 1px solid #f1f5f9;
+        margin-top: auto;
     }
     .footer-live {
         background-color: #fff5f5;
-        color: #e53e3e;
+        color: #dc2626;
     }
     .footer-recent {
         background-color: #f0f9ff;
-        color: #0369a1;
+        color: #0284c7;
     }
     .footer-upcoming {
         background-color: #f8fafc;
@@ -176,13 +185,26 @@
     }
     .no-data-card {
         background: #ffffff;
-        padding: 48px;
-        border-radius: 12px;
+        padding: 60px 40px;
+        border-radius: 16px;
         border: 1px solid #e2e8f0;
         text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .no-data-icon {
+        font-size: 40px;
+        margin-bottom: 16px;
+        display: block;
+    }
+    .no-data-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 6px;
+    }
+    .no-data-desc {
         color: #64748b;
-        font-weight: 600;
-        font-size: 15px;
+        font-size: 14px;
     }
 </style>
 
@@ -199,7 +221,8 @@
             </div>
         </div>
 
-        <div style="margin-bottom: 40px;">
+        <!-- Live Matches Block -->
+        <div>
             <h2 class="section-heading">
                 <span class="heading-bar" style="background-color: #dc2626;"></span> Live Matches
             </h2>
@@ -207,47 +230,62 @@
             @if(count($liveSchedules) > 0)
                 <div class="match-grid">
                     @foreach($liveSchedules as $match)
-                        <div class="match-card">
-                            <div class="card-header">
-                                <span class="series-title" title="{{ $match['seriesName'] }}">{{ $match['seriesName'] }}</span>
-                                <span class="format-badge">{{ $match['matchInfo']['matchFormat'] ?? 'T20' }}</span>
-                            </div>
-                            <div class="card-body">
-                                <div class="team-score-row">
-                                    <span class="team-name">{{ $match['matchInfo']['team1']['teamName'] ?? 'Team 1' }}</span>
-                                    <span class="score-display">
-                                        @if(isset($match['matchScore']['team1Score']['inngs1']['runs']))
-                                            {{ $match['matchScore']['team1Score']['inngs1']['runs'] }}-{{ $match['matchScore']['team1Score']['inngs1']['wickets'] ?? '0' }}
-                                        @else
-                                            <span class="not-started">Yet to bat</span>
-                                        @endif
-                                    </span>
+                        <a href="{{ url('matches/' . ($match['matchId'] ?? '#')) }}" class="match-link-wrapper">
+                            <div class="match-card">
+                                <div class="card-header">
+                                    <span class="series-title" title="{{ $match['seriesName'] }}">{{ $match['seriesName'] }}</span>
+                                    <span class="format-badge" style="background: #fee2e2; color: #dc2626;">{{ $match['matchInfo']['matchFormat'] ?? 'LIVE' }}</span>
                                 </div>
-                                <div class="team-score-row">
-                                    <span class="team-name">{{ $match['matchInfo']['team2']['teamName'] ?? 'Team 2' }}</span>
-                                    <span class="score-display">
-                                        @if(isset($match['matchScore']['team2Score']['inngs1']['runs']))
-                                            {{ $match['matchScore']['team2Score']['inngs1']['runs'] }}-{{ $match['matchScore']['team2Score']['inngs1']['wickets'] ?? '0' }}
-                                        @else
-                                            <span class="not-started">Yet to bat</span>
-                                        @endif
-                                    </span>
+                                <div class="card-body">
+                                    <div class="team-score-row">
+                                        <span class="team-name">{{ $match['matchInfo']['team1']['teamName'] ?? 'Team 1' }}</span>
+                                        <span class="score-display">
+                                            @if(isset($match['matchScore']['team1Score']['inngs1']['runs']))
+                                                {{ $match['matchScore']['team1Score']['inngs1']['runs'] }}-{{ $match['matchScore']['team1Score']['inngs1']['wickets'] ?? '0' }}
+                                                @if(isset($match['matchScore']['team1Score']['inngs1']['overs']))
+                                                    <span class="overs-display">({{ $match['matchScore']['team1Score']['inngs1']['overs'] }})</span>
+                                                @endif
+                                            @elseif(isset($match['matchScore']['team1Score']['runs']))
+                                                {{ $match['matchScore']['team1Score']['runs'] }}-{{ $match['matchScore']['team1Score']['wickets'] ?? '0' }}
+                                            @else
+                                                <span class="not-started">Yet to bat</span>
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <div class="team-score-row">
+                                        <span class="team-name">{{ $match['matchInfo']['team2']['teamName'] ?? 'Team 2' }}</span>
+                                        <span class="score-display">
+                                            @if(isset($match['matchScore']['team2Score']['inngs1']['runs']))
+                                                {{ $match['matchScore']['team2Score']['inngs1']['runs'] }}-{{ $match['matchScore']['team2Score']['inngs1']['wickets'] ?? '0' }}
+                                                @if(isset($match['matchScore']['team2Score']['inngs1']['overs']))
+                                                    <span class="overs-display">({{ $match['matchScore']['team2Score']['inngs1']['overs'] }})</span>
+                                                @endif
+                                            @elseif(isset($match['matchScore']['team2Score']['runs']))
+                                                {{ $match['matchScore']['team2Score']['runs'] }}-{{ $match['matchScore']['team2Score']['wickets'] ?? '0' }}
+                                            @else
+                                                <span class="not-started">Yet to bat</span>
+                                            @endif
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-footer footer-live">
+                                    🔴 {{ $match['matchInfo']['status'] ?? 'Match in progress' }}
                                 </div>
                             </div>
-                            <div class="card-footer footer-live">
-                                🏏 {{ $match['matchInfo']['status'] ?? 'Match in progress' }}
-                            </div>
-                        </div>
+                        </a>
                     @endforeach
                 </div>
             @else
                 <div class="no-data-card">
-                    No active international live matches currently on stream.
+                    <span class="no-data-icon">🏏</span>
+                    <div class="no-data-title">No Active Live Matches</div>
+                    <div class="no-data-desc">There are no live international cricket matches tracking at this minute. Check back shortly!</div>
                 </div>
             @endif
         </div>
 
-        <div style="margin-bottom: 40px;">
+        <!-- Recent Results Block -->
+        <div>
             <h2 class="section-heading">
                 <span class="heading-bar" style="background-color: #0284c7;"></span> Recent Results
             </h2>
@@ -255,32 +293,47 @@
             @if(count($recentSchedules) > 0)
                 <div class="match-grid">
                     @foreach($recentSchedules as $match)
-                        <div class="match-card">
-                            <div class="card-header">
-                                <span class="series-title" title="{{ $match['seriesName'] }}">{{ $match['seriesName'] }}</span>
-                                <span class="format-badge" style="background:#475569; color:#ffffff;">FINISHED</span>
-                            </div>
-                            <div class="card-body">
-                                <div class="team-score-row" style="margin-bottom: 8px;">
-                                    <span class="team-name" style="color: #475569;">{{ $match['matchInfo']['team1']['teamName'] ?? 'Team 1' }}</span>
+                        <a href="{{ url('matches/' . ($match['matchId'] ?? '#')) }}" class="match-link-wrapper">
+                            <div class="match-card">
+                                <div class="card-header">
+                                    <span class="series-title" title="{{ $match['seriesName'] }}">{{ $match['seriesName'] }}</span>
+                                    <span class="format-badge" style="background:#f1f5f9; color:#475569;">FINISHED</span>
                                 </div>
-                                <div class="team-score-row">
-                                    <span class="team-name" style="color: #475569;">{{ $match['matchInfo']['team2']['teamName'] ?? 'Team 2' }}</span>
+                                <div class="card-body">
+                                    <div class="team-score-row">
+                                        <span class="team-name" style="color: #475569;">{{ $match['matchInfo']['team1']['teamName'] ?? 'Team 1' }}</span>
+                                        <span class="score-display" style="color: #64748b;">
+                                            @if(isset($match['matchScore']['team1Score']['inngs1']['runs']))
+                                                {{ $match['matchScore']['team1Score']['inngs1']['runs'] }}-{{ $match['matchScore']['team1Score']['inngs1']['wickets'] ?? '0' }}
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <div class="team-score-row">
+                                        <span class="team-name" style="color: #475569;">{{ $match['matchInfo']['team2']['teamName'] ?? 'Team 2' }}</span>
+                                        <span class="score-display" style="color: #64748b;">
+                                            @if(isset($match['matchScore']['team2Score']['inngs1']['runs']))
+                                                {{ $match['matchScore']['team2Score']['inngs1']['runs'] }}-{{ $match['matchScore']['team2Score']['inngs1']['wickets'] ?? '0' }}
+                                            @endif
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-footer footer-recent">
+                                    🏆 {{ $match['matchInfo']['status'] ?? 'Match complete' }}
                                 </div>
                             </div>
-                            <div class="card-footer footer-recent">
-                                🏆 {{ $match['matchInfo']['status'] ?? 'Match complete' }}
-                            </div>
-                        </div>
+                        </a>
                     @endforeach
                 </div>
             @else
                 <div class="no-data-card">
-                    No recent international results available at the moment.
+                    <span class="no-data-icon">📊</span>
+                    <div class="no-data-title">No Recent Matches Available</div>
+                    <div class="no-data-desc">No newly concluded international scorecards were registered within this cycle.</div>
                 </div>
             @endif
         </div>
 
+        <!-- Upcoming Fixtures Block -->
         <div>
             <h2 class="section-heading">
                 <span class="heading-bar" style="background-color: #8b5cf6;"></span> Upcoming Fixtures
@@ -289,31 +342,33 @@
             @if(count($upcomingSchedules) > 0)
                 <div class="match-grid">
                     @foreach($upcomingSchedules as $match)
-                        <div class="match-card">
-                            <div class="card-header">
-                                <span class="series-title" title="{{ $match['seriesName'] }}">{{ $match['seriesName'] }}</span>
-                                <span class="format-badge" style="background:#e0e7ff; color:#4338ca;">{{ $match['matchInfo']['matchFormat'] ?? 'UPCOMING' }}</span>
-                            </div>
-                            <div class="card-body">
-                                <div class="team-score-row" style="margin-bottom: 8px;">
-                                    <span class="team-name">{{ $match['matchInfo']['team1']['teamName'] ?? 'Team A' }}</span>
+                        <a href="{{ url('matches/' . ($match['matchId'] ?? '#')) }}" class="match-link-wrapper">
+                            <div class="match-card">
+                                <div class="card-header">
+                                    <span class="series-title" title="{{ $match['seriesName'] }}">{{ $match['seriesName'] }}</span>
+                                    <span class="format-badge" style="background:#f3e8ff; color:#6b21a8;">{{ $match['matchInfo']['matchFormat'] ?? 'UPCOMING' }}</span>
                                 </div>
-                                <div class="team-score-row" style="margin-bottom: 8px;">
-                                    <span class="team-name" style="font-size: 13px; color:#94a3b8; font-weight: 500;">versus</span>
+                                <div class="card-body" style="gap: 12px;">
+                                    <div class="team-score-row">
+                                        <span class="team-name" style="font-size: 17px;">{{ $match['matchInfo']['team1']['teamName'] ?? 'Team A' }}</span>
+                                    </div>
+                                    <div style="color:#94a3b8; font-weight: 700; font-size: 11px; letter-spacing: 1px;">VS</div>
+                                    <div class="team-score-row">
+                                        <span class="team-name" style="font-size: 17px;">{{ $match['matchInfo']['team2']['teamName'] ?? 'Team B' }}</span>
+                                    </div>
                                 </div>
-                                <div class="team-score-row">
-                                    <span class="team-name">{{ $match['matchInfo']['team2']['teamName'] ?? 'Team B' }}</span>
+                                <div class="card-footer footer-upcoming">
+                                    📍 {{ $match['matchInfo']['venueInfo']['ground'] ?? $match['matchInfo']['venueInfo']['name'] ?? 'International Stadium' }}
                                 </div>
                             </div>
-                            <div class="card-footer footer-upcoming">
-                                📍 {{ $match['matchInfo']['venueInfo']['ground'] ?? 'International Stadium' }}
-                            </div>
-                        </div>
+                        </a>
                     @endforeach
                 </div>
             @else
                 <div class="no-data-card">
-                    No upcoming matches listed.
+                    <span class="no-data-icon">📅</span>
+                    <div class="no-data-title">No Upcoming Matches Scheduled</div>
+                    <div class="no-data-desc">There are currently no scheduled upcoming international fixtures remaining in the feed calendar.</div>
                 </div>
             @endif
         </div>

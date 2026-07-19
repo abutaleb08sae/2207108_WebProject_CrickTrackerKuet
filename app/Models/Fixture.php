@@ -14,6 +14,7 @@ class Fixture extends Model
         'team_two_id', 
         'match_datetime', 
         'venue', 
+        'tournament_type', // <-- Added to allow mass assignment from your form inputs
         'status', 
         'winner_id', // <-- Added to allow saving the winning team on completion
         'toss_winner_id', 

@@ -27,9 +27,11 @@ class FixtureController extends Controller
             'team_two_id' => 'required|exists:teams,id',
             'match_datetime' => 'required|date|after:now',
             'venue' => 'required|string|max:100',
+            'tournament_type' => 'required|string|max:150', // Added tracking validation rule
             'status' => 'required|in:Upcoming,Live,Completed',
         ]);
 
+        // Automatically captures and saves team_one_id, team_two_id, venue, tournament_type, status, and match_datetime safely
         Fixture::create($request->all());
 
         return redirect()->route('fixtures.index')->with('success', 'Match scheduled successfully!');
@@ -52,6 +54,7 @@ class FixtureController extends Controller
             'team_two_id' => 'required|exists:teams,id',
             'match_datetime' => 'required|date',
             'venue' => 'required|string|max:100',
+            'tournament_type' => 'required|string|max:150', // Added tracking validation rule
             'status' => 'required|in:Upcoming,Live,Completed',
         ]);
 

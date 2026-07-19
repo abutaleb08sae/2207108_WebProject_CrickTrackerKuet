@@ -27,12 +27,18 @@
                     @forelse($fixtures as $fixture)
                         <tr>
                             <td class="ps-4 py-3">
-                                <span class="fw-bold text-dark">{{ $fixture->teamOne->name }}</span> 
-                                <span class="text-muted px-2 fw-normal">vs</span> 
-                                <span class="fw-bold text-dark">{{ $fixture->teamTwo->name }}</span>
+                                <div class="mb-1">
+                                    <span class="fw-bold text-dark">{{ $fixture->teamOne->name }}</span> 
+                                    <span class="text-muted px-2 fw-normal">vs</span> 
+                                    <span class="fw-bold text-dark">{{ $fixture->teamTwo->name }}</span>
+                                </div>
+                                <!-- Tournament Type UI Label Pill Element -->
+                                <span class="badge bg-light text-dark border" style="font-size: 11px; font-weight: 600; padding: 4px 8px;">
+                                    🏆 {{ $fixture->tournament_type ?? 'Inter Department Cricket Tournament' }}
+                                </span>
                             </td>
                             <td>{{ date('M d, Y - h:i A', strtotime($fixture->match_datetime)) }}</td>
-                            <td><small class="text-muted"><i class="fa-solid fa-location-dot text-secondary me-1"></i>{{ $fixture->venue }}</small></td>
+                            <td><small class="text-dark"><i class="fa-solid fa-location-dot text-secondary me-1"></i>{{ $fixture->venue }}</small></td>
                             <td>
                                 @if($fixture->status == 'Upcoming')
                                     <span class="badge bg-primary">Upcoming</span>

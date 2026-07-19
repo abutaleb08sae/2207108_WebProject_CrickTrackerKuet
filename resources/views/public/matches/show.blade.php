@@ -132,6 +132,13 @@
                         </div>
                     </div>
                 </div>
+
+                @if($fixture->player_of_the_match_id)
+                    <div class="mt-4 p-3 bg-warning bg-opacity-10 border border-warning rounded d-flex justify-content-between align-items-center">
+                        <span class="text-dark fw-bold"><i class="fa-solid fa-trophy text-warning me-2"></i>Player of the Match:</span>
+                        <strong class="text-success fs-5">{{ $fixture->playerOfTheMatch?->name }}</strong>
+                    </div>
+                @endif
             </div>
 
             {{-- 2. SCORECARD TAB --}}
@@ -162,7 +169,7 @@
                                 <table class="table table-hover border align-middle">
                                     <thead class="table-light">
                                         <tr>
-                                            <th>Batter</th>
+                                            <th>Clarification / Batter</th>
                                             <th>Status</th>
                                             <th class="text-center">R</th>
                                             <th class="text-center">B</th>
@@ -335,27 +342,22 @@
             <div class="tab-pane fade" id="commentary" role="tabpanel" aria-labelledby="commentary-tab">
                 <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-bullhorn text-info me-2"></i>Ball-by-Ball Commentary</h5>
                 <div class="list-group list-group-flush">
-                    @forelse(($fixture->innings ?? collect())->flatMap->balls as $ball)
+                    @forelse($fixture->commentaries as $log)
                         <div class="list-group-item d-flex align-items-start gap-3 py-3 px-0 border-bottom">
-                            <span class="badge bg-dark font-monospace p-2 fs-6">{{ $ball->over_number }}.{{ $ball->ball_number }}</span>
+                            <span class="badge bg-dark font-monospace p-2 fs-6" style="min-width: 65px;">
+                                Ov {{ number_format($log->over_number, 1) }}
+                            </span>
                             <div>
-                                <span class="fw-bold text-dark">
-                                    @if($ball->bowler_id)
-                                        <a href="{{ route('public.players.show', $ball->bowler_id) }}" class="text-decoration-none text-dark hover-underline">{{ $ball->bowler?->name }}</a>
-                                    @else
-                                        {{ $ball->bowler?->name ?? 'Bowler' }}
-                                    @endif
-                                    to 
-                                    @if($ball->batsman_id)
-                                        <a href="{{ route('public.players.show', $ball->batsman_id) }}" class="text-decoration-none text-dark hover-underline">{{ $ball->batsman?->name }}</a>
-                                    @else
-                                        {{ $ball->batsman?->name ?? 'Batter' }}
-                                    @endif
+                                @php
+                                    $badgeColor = 'bg-secondary';
+                                    if ($log->runs_scored == 4) $badgeColor = 'bg-success';
+                                    elseif ($log->runs_scored == 6) $badgeColor = 'bg-info';
+                                    if ($log->ball_type == 'Wicket') $badgeColor = 'bg-danger';
+                                @endphp
+                                <span class="badge {{ $badgeColor }} me-2">
+                                    {{ $log->ball_type == 'Wicket' ? 'WICKET' : ($log->runs_scored == 0 ? 'Dot' : $log->runs_scored . ' Runs') }}
                                 </span>
-                                @if($ball->is_wicket)
-                                    <span class="badge bg-danger ms-2">WICKET</span>
-                                @endif
-                                <p class="mb-0 text-secondary mt-1 small">{{ $ball->commentary_text }}</p>
+                                <p class="mb-0 text-secondary d-inline-block">{{ $log->description }}</p>
                             </div>
                         </div>
                     @empty
@@ -370,20 +372,15 @@
                     <div class="col-md-6 border-end">
                         <h6 class="fw-bold border-bottom pb-2 text-dark"><i class="fa-solid fa-users text-info me-2"></i>{{ $fixture->teamOne?->name }} Squad</h6>
                         <ul class="list-group list-group-flush">
-                            @forelse(($fixture->squads ?? collect())->where('team_id', $fixture->team_one_id) as $sq)
+                            @forelse($fixture->teamOne->players as $player)
                                 <li class="list-group-item d-flex justify-content-between align-items-center ps-0">
                                     <span>🏃 
-                                        @if($sq->player_id)
-                                            <a href="{{ route('public.players.show', $sq->player_id) }}" class="text-decoration-none text-dark hover-underline fw-medium">
-                                                {{ $sq->player?->name }}
-                                            </a>
-                                        @else
-                                            {{ $sq->player?->name }}
-                                        @endif
+                                        <a href="{{ route('public.players.show', $player->id) }}" class="text-decoration-none text-dark hover-underline fw-medium">
+                                            {{ $player->name }}
+                                        </a>
                                     </span>
                                     <div>
-                                        @if($sq->is_captain)<span class="badge bg-dark me-1">C</span>@endif
-                                        @if($sq->is_wicket_keeper)<span class="badge bg-info text-dark">WK</span>@endif
+                                        <span class="badge bg-light text-muted border">{{ $player->role ?? 'Player' }}</span>
                                     </div>
                                 </li>
                             @empty
@@ -394,20 +391,15 @@
                     <div class="col-md-6">
                         <h6 class="fw-bold border-bottom pb-2 text-dark"><i class="fa-solid fa-users text-info me-2"></i>{{ $fixture->teamTwo?->name }} Squad</h6>
                         <ul class="list-group list-group-flush">
-                            @forelse(($fixture->squads ?? collect())->where('team_id', $fixture->team_two_id) as $sq)
-                                <li class="list-group-item d-flex justify- درمیان align-items-center ps-0 border-0 d-flex justify-content-between">
+                            @forelse($fixture->teamTwo->players as $player)
+                                <li class="list-group-item d-flex justify-content-between align-items-center ps-0 border-0 d-flex justify-content-between">
                                     <span>🏃 
-                                        @if($sq->player_id)
-                                            <a href="{{ route('public.players.show', $sq->player_id) }}" class="text-decoration-none text-dark hover-underline fw-medium">
-                                                {{ $sq->player?->name }}
-                                            </a>
-                                        @else
-                                            {{ $sq->player?->name }}
-                                        @endif
+                                        <a href="{{ route('public.players.show', $player->id) }}" class="text-decoration-none text-dark hover-underline fw-medium">
+                                            {{ $player->name }}
+                                        </a>
                                     </span>
                                     <div>
-                                        @if($sq->is_captain)<span class="badge bg-dark me-1">C</span>@endif
-                                        @if($sq->is_wicket_keeper)<span class="badge bg-info text-dark">WK</span>@endif
+                                        <span class="badge bg-light text-muted border">{{ $player->role ?? 'Player' }}</span>
                                     </div>
                                 </li>
                             @empty
@@ -420,18 +412,32 @@
 
             {{-- 5. STATISTICS TAB --}}
             <div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-                <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-chart-line text-info me-2"></i>Visual Analytics</h5>
-                <div class="row text-center g-3 mt-2">
-                    <div class="col-md-6">
-                        <div class="p-5 border rounded bg-light text-muted">
-                            <i class="fa-solid fa-chart-area fa-2x mb-2 text-secondary"></i>
-                            <span class="d-block small fw-semibold">Run Rate Progression Chart Placeholder</span>
+                <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-chart-line text-info me-2"></i>Match Metric Comparison</h5>
+                <div class="row text-center g-3 mt-2 text-dark">
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="small text-muted mb-1">Total Boundaries</div>
+                            <h4 class="fw-bold mb-0 text-primary">
+                                {{ ($fixture->battingScorecards->sum('fours_hit') ?? 0) + ($fixture->battingScorecards->sum('sixes_hit') ?? 0) }}
+                            </h4>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="p-5 border rounded bg-light text-muted">
-                            <i class="fa-solid fa-circle-dot fa-2x mb-2 text-secondary"></i>
-                            <span class="d-block small fw-semibold">Wagon Wheel Matrix Canvas Placeholder</span>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="small text-muted mb-1">Total Fours (4s)</div>
+                            <h4 class="fw-bold mb-0 text-success">{{ $fixture->battingScorecards->sum('fours_hit') ?? 0 }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="small text-muted mb-1">Total Sixes (6s)</div>
+                            <h4 class="fw-bold mb-0 text-info">{{ $fixture->battingScorecards->sum('sixes_hit') ?? 0 }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="small text-muted mb-1">Wickets Taken</div>
+                            <h4 class="fw-bold mb-0 text-danger">{{ $fixture->bowlingScorecards->sum('wickets_taken') ?? 0 }}</h4>
                         </div>
                     </div>
                 </div>
@@ -440,7 +446,7 @@
 
     @else
         {{-- ========================================== --}}
-        {{--      ORIGINAL EXTERNAL MATCH BACKUP LAYOUT  --}}
+        {{--    ORIGINAL EXTERNAL MATCH BACKUP LAYOUT   --}}
         {{-- ========================================== --}}
       
         {{-- Match Hero Deck --}}

@@ -50,13 +50,12 @@
         $i1Batting = ($score->innings_one_batting_team_id == $fixture->team_one_id) ? $teamOneModel : $teamTwoModel;
         $i2Batting = ($score->innings_two_batting_team_id == $fixture->team_one_id) ? $teamOneModel : $teamTwoModel;
         
-        // Dynamically deduce current active batting and bowling rosters
         $currentBattingTeamId = ($score->current_innings == 1) ? $score->innings_one_batting_team_id : $score->innings_two_batting_team_id;
         $battingRoster = ($currentBattingTeamId == $fixture->team_one_id) ? $team1Players : $team2Players;
         $bowlingRoster = ($currentBattingTeamId == $fixture->team_one_id) ? $team2Players : $team1Players;
     @endphp
 
-    <!-- Professional Lineup Management Subpanel -->
+    <!-- Active Lineup Management Panel -->
     <div class="card border-0 shadow-sm mb-4 bg-light text-start">
         <div class="card-body">
             <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-users me-2"></i>Active Lineup Management</h6>
@@ -193,13 +192,14 @@
                 </div>
             </div>
 
+            <!-- Match Board Summary -->
             <div class="card border-0 shadow-sm p-3 bg-white">
                 <h6 class="fw-bold text-muted border-bottom pb-2 mb-2">Match Board Summary</h6>
-                <div class="d-flex" style="justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <span>1st Inns ({{ $i1Batting->name }}):</span>
                     <strong class="text-dark">{{ $score->innings_one_runs }}/{{ $score->innings_one_wickets }} ({{ floor($score->innings_one_balls / 6) }}.{{ $score->innings_one_balls % 6 }} Ov)</strong>
                 </div>
-                <div class="d-flex" style="justify-content: space-between; align-items: center;">
+                <div class="d-flex justify-content-between align-items-center">
                     <span>2nd Inns ({{ $i2Batting->name }}):</span>
                     <strong class="text-dark">{{ $score->innings_two_runs }}/{{ $score->innings_two_wickets }} ({{ floor($score->innings_two_balls / 6) }}.{{ $score->innings_two_balls % 6 }} Ov)</strong>
                 </div>
@@ -212,10 +212,18 @@
             </div>
         </div>
 
+        <!-- Dynamic Control Dashboard Operations -->
         <div class="col-lg-7">
             <div class="card border-0 shadow-sm p-4">
                 <form action="{{ route('scoring.update', $fixture->id) }}" method="POST">
                     @csrf
+                    
+                    <!-- Dynamic Ball Commentary Writebox Component -->
+                    <div class="mb-3">
+                        <label for="commentary_text" class="form-label small fw-bold text-dark"><i class="fa-solid fa-microphone me-1 text-primary"></i> Ball-by-Ball Commentary Description (Optional)</label>
+                        <input type="text" class="form-control form-control-sm border-dark-subtle" id="commentary_text" name="commentary_text" placeholder="e.g. Four runs through extra cover! Beautiful shot.">
+                    </div>
+
                     <div class="row g-2 mb-3">
                         <div class="col-4"><button type="submit" name="action" value="add_dot" class="btn btn-outline-secondary w-100 py-3 fw-bold">Dot Ball</button></div>
                         <div class="col-4"><button type="submit" name="action" value="add_run" class="btn btn-primary w-100 py-3 fw-bold">+1 Run</button></div>
@@ -240,7 +248,7 @@
                                 </div>
                             @else
                                 <div class="col-sm-8">
-                                    <button type="submit" name="action" value="end_match" class="btn btn-success w-100 py-2 fw-bold" onclick="return confirm('Calculate results and declare winner?');">End & Finalize Match</button>
+                                    <button type="button" class="btn btn-success w-100 py-2 fw-bold" data-bs-toggle="modal" data-bs-target="#mvpAwardModal">End & Finalize Match</button>
                                 </div>
                             @endif
                             <div class="col-sm-4">
@@ -252,5 +260,60 @@
             </div>
         </div>
     </div>
+
+    <!-- Finalize Match & Player of the Match Selector Modal UI Element -->
+    <div class="modal fade" id="mvpAwardModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="mvpAwardModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold" id="mvpAwardModalLabel"><i class="fa-solid fa-trophy me-2"></i>Conclude Match & Awards</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('scoring.update', $fixture->id) }}" method="POST">
+                    @csrf
+                    <!-- Pass end_match action via a hidden parameter to maintain standard execution signatures -->
+                    <input type="hidden" name="action" value="end_match">
+                    
+                    <div class="modal-body p-4">
+                        <p class="text-muted small">The match status will shift to <strong>Completed</strong>. Select the player whose on-field performance earned them the Player of the Match award:</p>
+                        
+                        <div class="mb-3">
+                            <label for="player_of_the_match_id" class="form-label fw-bold text-dark">Player of the Match</label>
+                            <select name="player_of_the_match_id" id="player_of_the_match_id" class="form-select text-dark border-dark-subtle" required>
+                                <option value="">-- Choose MVP Player --</option>
+                                <optgroup label="🛡️ {{ $fixture->teamOne->name }}">
+                                    @foreach($team1Players as $p)
+                                        <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                    @endforeach
+                                </optgroup>
+                                <optgroup label="🛡️ {{ $fixture->teamTwo->name }}">
+                                    @foreach($team2Players as $p)
+                                        <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                    @endforeach
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-success px-4 fw-bold">Declare Winner & Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endif
+
+<script>
+// Clear commentary layout configurations upon submitting scoring clicks to keep the input responsive
+document.querySelectorAll('button[type="submit"]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        // Allow short delay for execution cycles before wiping string memory
+        setTimeout(() => {
+            const commBox = document.getElementById('commentary_text');
+            if(commBox && this.value !== 'end_match') commBox.value = '';
+        }, 100);
+    });
+});
+</script>
 @endsection

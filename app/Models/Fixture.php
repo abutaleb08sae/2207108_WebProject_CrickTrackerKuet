@@ -17,6 +17,7 @@ class Fixture extends Model
         'tournament_type', // <-- Added to allow mass assignment from your form inputs
         'status', 
         'winner_id', // <-- Added to allow saving the winning team on completion
+        'player_of_the_match_id', // <-- Added to store the MVP award reference safely
         'toss_winner_id', 
         'toss_decision', 
         'target_runs', 
@@ -73,5 +74,21 @@ class Fixture extends Model
     public function bowlingScorecards()
     {
         return $this->hasMany(BowlingScorecard::class, 'fixture_id');
+    }
+
+    /**
+     * Relationship to fetch ball-by-ball commentary streams ordered newest first.
+     */
+    public function commentaries()
+    {
+        return $this->hasMany(CommentaryLog::class, 'fixture_id')->orderBy('id', 'desc');
+    }
+
+    /**
+     * Relationship mapping to the specific player matching the match award tracking row.
+     */
+    public function playerOfTheMatch()
+    {
+        return $this->belongsTo(Player::class, 'player_of_the_match_id');
     }
 }

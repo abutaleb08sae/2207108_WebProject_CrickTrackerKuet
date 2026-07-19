@@ -159,11 +159,6 @@
         font-weight: 600;
         margin-left: 4px;
     }
-    .not-started {
-        font-size: 13px;
-        color: #94a3b8;
-        font-weight: 600;
-    }
     .card-footer {
         padding: 16px 24px;
         font-size: 14px;
@@ -171,40 +166,41 @@
         border-top: 1px solid #f1f5f9;
         margin-top: auto;
     }
-    .footer-live {
-        background-color: #fff5f5;
-        color: #dc2626;
-    }
-    .footer-recent {
-        background-color: #f0f9ff;
-        color: #0284c7;
-    }
-    .footer-upcoming {
-        background-color: #f8fafc;
-        color: #475569;
-    }
+    .footer-live { background-color: #fff5f5; color: #dc2626; }
+    .footer-recent { background-color: #f0f9ff; color: #0284c7; }
+    .footer-upcoming { background-color: #f8fafc; color: #475569; }
+    
     .no-data-card {
         background: #ffffff;
-        padding: 60px 40px;
+        padding: 40px;
         border-radius: 16px;
         border: 1px solid #e2e8f0;
         text-align: center;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        grid-column: 1 / -1;
     }
-    .no-data-icon {
-        font-size: 40px;
-        margin-bottom: 16px;
-        display: block;
+    .no-data-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+    .no-data-title { font-size: 16px; font-weight: 700; color: #334155; }
+    .no-data-desc { color: #64748b; font-size: 13px; margin-top: 4px; }
+
+    /* Beautiful CSS Skeleton loading spaces */
+    .skeleton-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        height: 190px;
+        position: relative;
+        overflow: hidden;
     }
-    .no-data-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #334155;
-        margin-bottom: 6px;
+    .skeleton-card::after {
+        content: "";
+        position: absolute;
+        top: 0; right: 0; bottom: 0; left: 0;
+        transform: translateX(-100%);
+        background-image: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 20%, rgba(255,255,255,0.7) 60%, rgba(255,255,255,0) 100%);
+        animation: shimmer-effect 1.6s infinite;
     }
-    .no-data-desc {
-        color: #64748b;
-        font-size: 14px;
+    @keyframes shimmer-effect {
+        100% { transform: translateX(100%); }
     }
 </style>
 
@@ -222,115 +218,25 @@
         </div>
 
         <!-- Live Matches Block -->
-        <div>
+        <div style="margin-bottom: 48px;">
             <h2 class="section-heading">
                 <span class="heading-bar" style="background-color: #dc2626;"></span> Live Matches
             </h2>
-            
-            @if(count($liveSchedules) > 0)
-                <div class="match-grid">
-                    @foreach($liveSchedules as $match)
-                        <a href="{{ url('matches/' . ($match['matchId'] ?? '#')) }}" class="match-link-wrapper">
-                            <div class="match-card">
-                                <div class="card-header">
-                                    <span class="series-title" title="{{ $match['seriesName'] }}">{{ $match['seriesName'] }}</span>
-                                    <span class="format-badge" style="background: #fee2e2; color: #dc2626;">{{ $match['matchInfo']['matchFormat'] ?? 'LIVE' }}</span>
-                                </div>
-                                <div class="card-body">
-                                    <div class="team-score-row">
-                                        <span class="team-name">{{ $match['matchInfo']['team1']['teamName'] ?? 'Team 1' }}</span>
-                                        <span class="score-display">
-                                            @if(isset($match['matchScore']['team1Score']['inngs1']['runs']))
-                                                {{ $match['matchScore']['team1Score']['inngs1']['runs'] }}-{{ $match['matchScore']['team1Score']['inngs1']['wickets'] ?? '0' }}
-                                                @if(isset($match['matchScore']['team1Score']['inngs1']['overs']))
-                                                    <span class="overs-display">({{ $match['matchScore']['team1Score']['inngs1']['overs'] }})</span>
-                                                @endif
-                                            @elseif(isset($match['matchScore']['team1Score']['runs']))
-                                                {{ $match['matchScore']['team1Score']['runs'] }}-{{ $match['matchScore']['team1Score']['wickets'] ?? '0' }}
-                                            @else
-                                                <span class="not-started">Yet to bat</span>
-                                            @endif
-                                        </span>
-                                    </div>
-                                    <div class="team-score-row">
-                                        <span class="team-name">{{ $match['matchInfo']['team2']['teamName'] ?? 'Team 2' }}</span>
-                                        <span class="score-display">
-                                            @if(isset($match['matchScore']['team2Score']['inngs1']['runs']))
-                                                {{ $match['matchScore']['team2Score']['inngs1']['runs'] }}-{{ $match['matchScore']['team2Score']['inngs1']['wickets'] ?? '0' }}
-                                                @if(isset($match['matchScore']['team2Score']['inngs1']['overs']))
-                                                    <span class="overs-display">({{ $match['matchScore']['team2Score']['inngs1']['overs'] }})</span>
-                                                @endif
-                                            @elseif(isset($match['matchScore']['team2Score']['runs']))
-                                                {{ $match['matchScore']['team2Score']['runs'] }}-{{ $match['matchScore']['team2Score']['wickets'] ?? '0' }}
-                                            @else
-                                                <span class="not-started">Yet to bat</span>
-                                            @endif
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="card-footer footer-live">
-                                    🔴 {{ $match['matchInfo']['status'] ?? 'Match in progress' }}
-                                </div>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            @else
-                <div class="no-data-card">
-                    <span class="no-data-icon">🏏</span>
-                    <div class="no-data-title">No Active Live Matches</div>
-                    <div class="no-data-desc">There are no live international cricket matches tracking at this minute. Check back shortly!</div>
-                </div>
-            @endif
+            <div id="live-container" class="match-grid">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
         </div>
 
         <!-- Recent Results Block -->
-        <div>
+        <div style="margin-bottom: 48px;">
             <h2 class="section-heading">
                 <span class="heading-bar" style="background-color: #0284c7;"></span> Recent Results
             </h2>
-            
-            @if(count($recentSchedules) > 0)
-                <div class="match-grid">
-                    @foreach($recentSchedules as $match)
-                        <a href="{{ url('matches/' . ($match['matchId'] ?? '#')) }}" class="match-link-wrapper">
-                            <div class="match-card">
-                                <div class="card-header">
-                                    <span class="series-title" title="{{ $match['seriesName'] }}">{{ $match['seriesName'] }}</span>
-                                    <span class="format-badge" style="background:#f1f5f9; color:#475569;">FINISHED</span>
-                                </div>
-                                <div class="card-body">
-                                    <div class="team-score-row">
-                                        <span class="team-name" style="color: #475569;">{{ $match['matchInfo']['team1']['teamName'] ?? 'Team 1' }}</span>
-                                        <span class="score-display" style="color: #64748b;">
-                                            @if(isset($match['matchScore']['team1Score']['inngs1']['runs']))
-                                                {{ $match['matchScore']['team1Score']['inngs1']['runs'] }}-{{ $match['matchScore']['team1Score']['inngs1']['wickets'] ?? '0' }}
-                                            @endif
-                                        </span>
-                                    </div>
-                                    <div class="team-score-row">
-                                        <span class="team-name" style="color: #475569;">{{ $match['matchInfo']['team2']['teamName'] ?? 'Team 2' }}</span>
-                                        <span class="score-display" style="color: #64748b;">
-                                            @if(isset($match['matchScore']['team2Score']['inngs1']['runs']))
-                                                {{ $match['matchScore']['team2Score']['inngs1']['runs'] }}-{{ $match['matchScore']['team2Score']['inngs1']['wickets'] ?? '0' }}
-                                            @endif
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="card-footer footer-recent">
-                                    🏆 {{ $match['matchInfo']['status'] ?? 'Match complete' }}
-                                </div>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            @else
-                <div class="no-data-card">
-                    <span class="no-data-icon">📊</span>
-                    <div class="no-data-title">No Recent Matches Available</div>
-                    <div class="no-data-desc">No newly concluded international scorecards were registered within this cycle.</div>
-                </div>
-            @endif
+            <div id="recent-container" class="match-grid">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
         </div>
 
         <!-- Upcoming Fixtures Block -->
@@ -338,41 +244,179 @@
             <h2 class="section-heading">
                 <span class="heading-bar" style="background-color: #8b5cf6;"></span> Upcoming Fixtures
             </h2>
-            
-            @if(count($upcomingSchedules) > 0)
-                <div class="match-grid">
-                    @foreach($upcomingSchedules as $match)
-                        <a href="{{ url('matches/' . ($match['matchId'] ?? '#')) }}" class="match-link-wrapper">
-                            <div class="match-card">
-                                <div class="card-header">
-                                    <span class="series-title" title="{{ $match['seriesName'] }}">{{ $match['seriesName'] }}</span>
-                                    <span class="format-badge" style="background:#f3e8ff; color:#6b21a8;">{{ $match['matchInfo']['matchFormat'] ?? 'UPCOMING' }}</span>
-                                </div>
-                                <div class="card-body" style="gap: 12px;">
-                                    <div class="team-score-row">
-                                        <span class="team-name" style="font-size: 17px;">{{ $match['matchInfo']['team1']['teamName'] ?? 'Team A' }}</span>
-                                    </div>
-                                    <div style="color:#94a3b8; font-weight: 700; font-size: 11px; letter-spacing: 1px;">VS</div>
-                                    <div class="team-score-row">
-                                        <span class="team-name" style="font-size: 17px;">{{ $match['matchInfo']['team2']['teamName'] ?? 'Team B' }}</span>
-                                    </div>
-                                </div>
-                                <div class="card-footer footer-upcoming">
-                                    📍 {{ $match['matchInfo']['venueInfo']['ground'] ?? $match['matchInfo']['venueInfo']['name'] ?? 'International Stadium' }}
-                                </div>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            @else
-                <div class="no-data-card">
-                    <span class="no-data-icon">📅</span>
-                    <div class="no-data-title">No Upcoming Matches Scheduled</div>
-                    <div class="no-data-desc">There are currently no scheduled upcoming international fixtures remaining in the feed calendar.</div>
-                </div>
-            @endif
+            <div id="upcoming-container" class="match-grid">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
         </div>
 
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Standard Asynchronous Fetch Execution Requirement
+    fetch("{{ url('/api/international-matches-data') }}")
+        .then(response => {
+            if (!response.ok) throw new Error("API Channel Offline");
+            return response.json();
+        })
+        .then(data => {
+            renderLiveSection(data.live);
+            renderRecentSection(data.recent);
+            renderUpcomingSection(data.upcoming);
+        })
+        .catch(error => {
+            console.error("AJAX Fetch Error Context:", error);
+            const errHtml = `
+                <div class="no-data-card">
+                    <span class="no-data-icon">⚠️</span>
+                    <div class="no-data-title">Synchronization Broken</div>
+                    <div class="no-data-desc">Failed to connect to backend feed streams. Please hit refresh.</div>
+                </div>`;
+            document.getElementById('live-container').innerHTML = errHtml;
+            document.getElementById('recent-container').innerHTML = errHtml;
+            document.getElementById('upcoming-container').innerHTML = errHtml;
+        });
+});
+
+function renderLiveSection(matches) {
+    const container = document.getElementById('live-container');
+    if (!matches || matches.length === 0) {
+        container.innerHTML = `
+            <div class="no-data-card">
+                <span class="no-data-icon">🏏</span>
+                <div class="no-data-title">No Active Live Matches</div>
+                <div class="no-data-desc">There are no live international cricket matches tracking right now.</div>
+            </div>`;
+        return;
+    }
+
+    let html = '';
+    matches.forEach(match => {
+        let t1Score = 'Yet to bat', t2Score = 'Yet to bat';
+        
+        if (match.matchScore?.team1Score?.inngs1?.runs !== undefined) {
+            let overs = match.matchScore.team1Score.inngs1.overs ? `<span class="overs-display">(${match.matchScore.team1Score.inngs1.overs})</span>` : '';
+            t1Score = `${match.matchScore.team1Score.inngs1.runs}-${match.matchScore.team1Score.inngs1.wickets || 0}${overs}`;
+        } else if (match.matchScore?.team1Score?.runs !== undefined) {
+            t1Score = `${match.matchScore.team1Score.runs}-${match.matchScore.team1Score.wickets || 0}`;
+        }
+
+        if (match.matchScore?.team2Score?.inngs1?.runs !== undefined) {
+            let overs = match.matchScore.team2Score.inngs1.overs ? `<span class="overs-display">(${match.matchScore.team2Score.inngs1.overs})</span>` : '';
+            t2Score = `${match.matchScore.team2Score.inngs1.runs}-${match.matchScore.team2Score.inngs1.wickets || 0}${overs}`;
+        } else if (match.matchScore?.team2Score?.runs !== undefined) {
+            t2Score = `${match.matchScore.team2Score.runs}-${match.matchScore.team2Score.wickets || 0}`;
+        }
+
+        html += `
+            <a href="{{ url('matches') }}/${match.matchId || '#'}" class="match-link-wrapper">
+                <div class="match-card">
+                    <div class="card-header">
+                        <span class="series-title" title="${match.seriesName}">${match.seriesName}</span>
+                        <span class="format-badge" style="background: #fee2e2; color: #dc2626;">${match.matchInfo?.matchFormat || 'LIVE'}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="team-score-row">
+                            <span class="team-name">${match.matchInfo?.team1?.teamName || 'Team 1'}</span>
+                            <span class="score-display">${t1Score}</span>
+                        </div>
+                        <div class="team-score-row">
+                            <span class="team-name">${match.matchInfo?.team2?.teamName || 'Team 2'}</span>
+                            <span class="score-display">${t2Score}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer footer-live">
+                        🔴 ${match.matchInfo?.status || 'Match in progress'}
+                    </div>
+                </div>
+            </a>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderRecentSection(matches) {
+    const container = document.getElementById('recent-container');
+    if (!matches || matches.length === 0) {
+        container.innerHTML = `
+            <div class="no-data-card">
+                <span class="no-data-icon">📊</span>
+                <div class="no-data-title">No Recent Matches</div>
+                <div class="no-data-desc">No recently concluded international scorecards found.</div>
+            </div>`;
+        return;
+    }
+
+    let html = '';
+    matches.forEach(match => {
+        let t1Runs = match.matchScore?.team1Score?.inngs1?.runs !== undefined ? `${match.matchScore.team1Score.inngs1.runs}-${match.matchScore.team1Score.inngs1.wickets || 0}` : '';
+        let t2Runs = match.matchScore?.team2Score?.inngs1?.runs !== undefined ? `${match.matchScore.team2Score.inngs1.runs}-${match.matchScore.team2Score.inngs1.wickets || 0}` : '';
+
+        html += `
+            <a href="{{ url('matches') }}/${match.matchId || '#'}" class="match-link-wrapper">
+                <div class="match-card">
+                    <div class="card-header">
+                        <span class="series-title" title="${match.seriesName}">${match.seriesName}</span>
+                        <span class="format-badge" style="background:#f1f5f9; color:#475569;">FINISHED</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="team-score-row">
+                            <span class="team-name" style="color: #475569;">${match.matchInfo?.team1?.teamName || 'Team 1'}</span>
+                            <span class="score-display" style="color: #64748b;">${t1Runs}</span>
+                        </div>
+                        <div class="team-score-row">
+                            <span class="team-name" style="color: #475569;">${match.matchInfo?.team2?.teamName || 'Team 2'}</span>
+                            <span class="score-display" style="color: #64748b;">${t2Runs}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer footer-recent">
+                        🏆 ${match.matchInfo?.status || 'Match complete'}
+                    </div>
+                </div>
+            </a>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderUpcomingSection(matches) {
+    const container = document.getElementById('upcoming-container');
+    if (!matches || matches.length === 0) {
+        container.innerHTML = `
+            <div class="no-data-card">
+                <span class="no-data-icon">📅</span>
+                <div class="no-data-title">No Upcoming Matches</div>
+                <div class="no-data-desc">There are no upcoming international fixtures scheduled.</div>
+            </div>`;
+        return;
+    }
+
+    let html = '';
+    matches.forEach(match => {
+        let ground = match.matchInfo?.venueInfo?.ground || match.matchInfo?.venueInfo?.name || 'International Stadium';
+        html += `
+            <a href="{{ url('matches') }}/${match.matchId || '#'}" class="match-link-wrapper">
+                <div class="match-card">
+                    <div class="card-header">
+                        <span class="series-title" title="${match.seriesName}">${match.seriesName}</span>
+                        <span class="format-badge" style="background:#f3e8ff; color:#6b21a8;">${match.matchInfo?.matchFormat || 'UPCOMING'}</span>
+                    </div>
+                    <div class="card-body" style="gap: 12px;">
+                        <div class="team-score-row">
+                            <span class="team-name" style="font-size: 17px;">${match.matchInfo?.team1?.teamName || 'Team A'}</span>
+                        </div>
+                        <div style="color:#94a3b8; font-weight: 700; font-size: 11px; letter-spacing: 1px;">VS</div>
+                        <div class="team-score-row">
+                            <span class="team-name" style="font-size: 17px;">${match.matchInfo?.team2?.teamName || 'Team B'}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer footer-upcoming">
+                        📍 ${ground}
+                    </div>
+                </div>
+            </a>`;
+    });
+    container.innerHTML = html;
+}
+</script>
 @endsection

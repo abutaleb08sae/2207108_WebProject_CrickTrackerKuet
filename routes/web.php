@@ -23,6 +23,9 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::get('/', [PublicHomeController::class, 'index'])->name('public.home');
     Route::get('/international-matches', [PublicHomeController::class, 'internationalMatches'])->name('public.international');
     
+    // Asynchronous JavaScript AJAX Endpoint for real-time Cricbuzz tracking
+    Route::get('/api/international-matches-data', [PublicHomeController::class, 'getInternationalMatchesData'])->name('public.international.data');
+    
     // Core Local Match Route - Dynamic Scoreboard view
     Route::get('/matches/{id}', [PublicHomeController::class, 'matchDetails'])->name('public.matches.show');
     

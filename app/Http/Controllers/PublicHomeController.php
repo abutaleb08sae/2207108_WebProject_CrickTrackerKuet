@@ -32,51 +32,30 @@ class PublicHomeController extends Controller
     }
 
     /**
-     * Parses cricbuzz response & provides beautiful mock fallback data
+     * Renders the shell layout instantly without holding up the server page load.
+     * Meets strict asynchronous frontend presentation requirements.
      */
     public function internationalMatches()
     {
-        // Fresh pull from API service upon page refresh
-        $response = $this->apiService->getMatchesList('international');
+        return view('public.international');
+    }
+
+    /**
+     * Asynchronous background endpoint serving cleanly parsed Cricbuzz match JSON datasets.
+     */
+    public function getInternationalMatchesData()
+    {
+        // Fetch raw payloads using valid Cricbuzz API endpoint operational tags
+        $liveRaw     = $this->apiService->getMatchesList('live');
+        $recentRaw   = $this->apiService->getMatchesList('recent');
+        $upcomingRaw = $this->apiService->getMatchesList('upcoming');
         
-        $liveSchedules = [];
-        $recentSchedules = [];
-        $upcomingSchedules = [];
+        // Filter down to only international matches for each tab section
+        $liveSchedules     = $this->filterMatchesByContext($liveRaw, ['live', 'innings break', 'toss']);
+        $recentSchedules   = $this->filterMatchesByContext($recentRaw, ['complete', 'completed']);
+        $upcomingSchedules = $this->filterMatchesByContext($upcomingRaw, ['preview', 'upcoming']);
 
-        // Parse actual API response
-        if (is_array($response) && isset($response['typeMatches']) && is_array($response['typeMatches'])) {
-            foreach ($response['typeMatches'] as $typeMatch) {
-                if (isset($typeMatch['seriesMatches']) && is_array($typeMatch['seriesMatches'])) {
-                    foreach ($typeMatch['seriesMatches'] as $seriesMatch) {
-                        $wrapper = $seriesMatch['seriesAdWrapper'] ?? $seriesMatch;
-                        $seriesName = $wrapper['seriesName'] ?? 'International Series';
-                        $matches = $wrapper['matches'] ?? [];
-                        
-                        foreach ($matches as $match) {
-                            if (!isset($match['matchInfo'])) {
-                                continue;
-                            }
-
-                            $match['seriesName'] = $seriesName;
-                            $state = strtolower($match['matchInfo']['state'] ?? '');
-
-                            // Store standard API ID at object top-level to simplify route bindings
-                            $match['matchId'] = $match['matchInfo']['matchId'] ?? null;
-
-                            if ($state === 'live' || $state === 'innings break') {
-                                $liveSchedules[] = $match;
-                            } elseif ($state === 'complete' || $state === 'completed') {
-                                $recentSchedules[] = $match;
-                            } else {
-                                $upcomingSchedules[] = $match;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // --- AT ANY COST FAILSAFE: If API yields zero matches, populate realistic data ---
+        // --- AT ANY COST FAILSAFE: If API yields zero matches across all streams, populate realistic data ---
         if (empty($liveSchedules) && empty($recentSchedules) && empty($upcomingSchedules)) {
             // Mock Live Match
             $liveSchedules[] = [
@@ -124,7 +103,70 @@ class PublicHomeController extends Controller
             ];
         }
 
-        return view('public.international', compact('liveSchedules', 'recentSchedules', 'upcomingSchedules'));
+        return response()->json([
+            'live'     => $liveSchedules,
+            'recent'   => $recentSchedules,
+            'upcoming' => $upcomingSchedules
+        ]);
+    }
+
+    /**
+     * Helper routine to reliably parse, structure, and separate match components from raw feeds
+     */
+    private function filterMatchesByContext($response, array $allowedStates)
+    {
+        $filtered = [];
+
+        if (!is_array($response)) {
+            return $filtered;
+        }
+
+        // Handle case if response payload is nested under a 'data' layer
+        $typeMatches = $response['typeMatches'] ?? $response['data']['typeMatches'] ?? null;
+
+        if (is_array($typeMatches)) {
+            foreach ($typeMatches as $typeGroup) {
+                $matchType = strtolower($typeGroup['matchType'] ?? '');
+                
+                // Keep only international fixtures
+                if ($matchType !== 'international') {
+                    continue;
+                }
+
+                if (isset($typeGroup['seriesMatches']) && is_array($typeGroup['seriesMatches'])) {
+                    foreach ($typeGroup['seriesMatches'] as $seriesBlock) {
+                        
+                        // Extract structural properties regardless of seriesAdWrapper presence
+                        if (isset($seriesBlock['seriesAdWrapper'])) {
+                            $seriesName = $seriesBlock['seriesAdWrapper']['seriesName'] ?? 'International Tour';
+                            $matches = $seriesBlock['seriesAdWrapper']['matches'] ?? [];
+                        } else {
+                            $seriesName = $seriesBlock['seriesName'] ?? 'International Tour';
+                            $matches = $seriesBlock['matches'] ?? [];
+                        }
+
+                        if (is_array($matches)) {
+                            foreach ($matches as $match) {
+                                if (!isset($match['matchInfo'])) {
+                                    continue;
+                                }
+
+                                $state = strtolower($match['matchInfo']['state'] ?? '');
+                                
+                                // Direct categorization filter mapping
+                                if (in_array($state, $allowedStates)) {
+                                    $match['seriesName'] = $seriesName;
+                                    $match['matchId'] = $match['matchInfo']['matchId'] ?? null;
+                                    $filtered[] = $match;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $filtered;
     }
 
     public function standings()
@@ -207,15 +249,11 @@ class PublicHomeController extends Controller
         return view('public.news_index', compact('allNews'));
     }
     
-    /**
-     * Multi-stream controller router for Match details. Handles both internal IDs and external third-party API IDs.
-     */
     public function matchDetails($id)
     {
         // Check if ID is an international API match or from mock arrays
         if (!is_numeric($id) || (int)$id > 500000 || str_contains($id, 'mock-')) {
             if (str_contains($id, 'mock-')) {
-                // Return descriptive realistic data for our fallbacks rather than blank values
                 $match = [
                     'seriesName' => 'ICC Men\'s T20 World Cup 2026',
                     'matchInfo' => [
@@ -234,13 +272,11 @@ class PublicHomeController extends Controller
                 return view('public.matches.show', compact('match'));
             }
 
-            // Real-time API single match detail fetch from Cricbuzz stream
             $match = $this->apiService->getMatchDetails($id);
             if (!$match) {
                 abort(404, 'International match data stream is currently offline.');
             }
             
-            // Normalize series name fields if API sends it lower in the hierarchy tree
             if (!isset($match['seriesName']) && isset($match['matchInfo']['seriesName'])) {
                 $match['seriesName'] = $match['matchInfo']['seriesName'];
             }
@@ -248,7 +284,6 @@ class PublicHomeController extends Controller
             return view('public.matches.show', compact('match'));
         }
 
-        // --- LOCAL FIXTURE DATA PIPELINE (Unchanged) ---
         $fixture = Fixture::with([
             'teamOne.players', 
             'teamTwo.players', 
@@ -273,12 +308,8 @@ class PublicHomeController extends Controller
         return view('public.matches.show', compact('fixture', 'currentRunRate', 'requiredRunRate'));
     }
 
-    /**
-     * Generates real-time aggregations for player career history cards
-     */
     public function playerProfile($id)
     {
-        // Route protection handling international or third-party context items elegantly 
         if (!is_numeric($id) || (int)$id > 500000) {
             $player = new Player([
                 'name' => 'International Player Profile',
@@ -294,7 +325,6 @@ class PublicHomeController extends Controller
             return view('public.player_profile', compact('player', 'stats', 'bowling', 'battingRecords'));
         }
 
-        // --- LOCAL PROFILE CALCULATIONS ---
         $player = Player::with('team')->findOrFail($id);
         $battingRecords = BattingScorecard::where('player_id', $id)->get();
         

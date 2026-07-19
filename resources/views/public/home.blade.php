@@ -34,8 +34,72 @@
             <h2 class="section-title mb-4">Active Live Feeds</h2>
             <div class="row g-4">
                 @forelse($liveMatches as $match)
+                    @php
+                        $score = $match->matchScore;
+                        
+                        // Determine the base team sequence from the toss or innings settings
+                        $teamOneBatsFirst = true;
+                        if (!empty($match->toss_winner_id) && !empty($match->toss_decision)) {
+                            if ($match->toss_winner_id == $match->team_one_id) {
+                                $teamOneBatsFirst = (strtolower($match->toss_decision) === 'bat');
+                            } else {
+                                $teamOneBatsFirst = (strtolower($match->toss_decision) === 'bowl');
+                            }
+                        }
+                        
+                        if (isset($score->innings_one_batting_team_id) && !empty($score->innings_one_batting_team_id)) {
+                            $teamOneBatsFirst = ($score->innings_one_batting_team_id == $match->team_one_id);
+                        }
+
+                        // Parse execution rules based on current innings
+                        $currentInnings = $score->current_innings ?? 1;
+
+                        if ($currentInnings == 2) {
+                            // Innings 1 data belongs to whoever batted first
+                            $inns1Runs = $score->innings_one_runs ?? 0;
+                            $inns1Wickets = $score->innings_one_wickets ?? 0;
+                            $inns1Balls = $score->innings_one_balls ?? 0;
+                            $inns1Overs = floor($inns1Balls / 6) . '.' . ($inns1Balls % 6);
+
+                            // Innings 2 data belongs to the team chasing
+                            $inns2Runs = $score->innings_two_runs ?? 0;
+                            $inns2Wickets = $score->innings_two_wickets ?? 0;
+                            $inns2Balls = $score->innings_two_balls ?? 0;
+                            $inns2Overs = floor($inns2Balls / 6) . '.' . ($inns2Balls % 6);
+
+                            if ($teamOneBatsFirst) {
+                                $teamOneText = $inns1Runs . '/' . $inns1Wickets . ' (' . $inns1Overs . ' ov)';
+                                $teamTwoText = $inns2Runs . '/' . $inns2Wickets . ' (' . $inns2Overs . ' ov)';
+                                $teamOneActive = false;
+                                $teamTwoActive = true;
+                            } else {
+                                $teamOneText = $inns2Runs . '/' . $inns2Wickets . ' (' . $inns2Overs . ' ov)';
+                                $teamTwoText = $inns1Runs . '/' . $inns1Wickets . ' (' . $inns1Overs . ' ov)';
+                                $teamOneActive = true;
+                                $teamTwoActive = false;
+                            }
+                        } else {
+                            // Innings 1 is active
+                            $inns1Runs = $score->runs ?? 0;
+                            $inns1Wickets = $score->wickets ?? 0;
+                            $inns1Balls = $score->balls_bowled ?? 0;
+                            $inns1Overs = floor($inns1Balls / 6) . '.' . ($inns1Balls % 6);
+
+                            if ($teamOneBatsFirst) {
+                                $teamOneText = $inns1Runs . '/' . $inns1Wickets . ' (' . $inns1Overs . ' ov)';
+                                $teamTwoText = 'Yet to bat';
+                                $teamOneActive = true;
+                                $teamTwoActive = false;
+                            } else {
+                                $teamOneText = 'Yet to bat';
+                                $teamTwoText = $inns1Runs . '/' . $inns1Wickets . ' (' . $inns1Overs . ' ov)';
+                                $teamOneActive = false;
+                                $teamTwoActive = true;
+                            }
+                        }
+                    @endphp
+
                     <div class="col-12 col-md-6 col-lg-4">
-                        <!-- FIX: Pointing to public.matches.show as defined in web.php -->
                         <a href="{{ route('public.matches.show', $match->id) }}" class="live-card-link">
                             <div class="cric-card p-4">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -46,24 +110,34 @@
                                         <i class="fa-solid fa-location-dot me-1"></i> {{ $match->venue }}
                                     </small>
                                 </div>
+                                
                                 <div class="d-flex flex-column gap-2 my-3">
+                                    <!-- Team One Lineup Display -->
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="fw-bold text-dark fs-5">{{ $match->teamOne->name }}</span>
-                                        <span class="fw-bold fs-5 text-dark">
-                                            {{ $match->matchScore->runs ?? 0 }}/{{ $match->matchScore->wickets ?? 0 }}
-                                            <small class="text-muted fw-normal fs-7">
-                                                ({{ floor(($match->matchScore->balls_bowled ?? 0) / 6) }}.{{ ($match->matchScore->balls_bowled ?? 0) % 6 }} ov)
-                                            </small>
+                                        <span class="{{ $teamOneActive ? 'fw-bold text-dark fs-5' : 'text-muted fs-5 fw-medium' }}">
+                                            {{ $match->teamOne->name }}
+                                            @if($teamOneActive)<span class="text-danger small fs-6 ms-1">🏏</span>@endif
+                                        </span>
+                                        <span class="{{ $teamOneActive ? 'fw-bold fs-5 text-dark' : 'fs-7 text-muted fw-medium' }}">
+                                            {{ $teamOneText }}
                                         </span>
                                     </div>
+
+                                    <!-- Team Two Lineup Display -->
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="text-muted fs-5 fw-medium">{{ $match->teamTwo->name }}</span>
-                                        <span class="fs-7 text-muted fw-medium">Yet to bat</span>
+                                        <span class="{{ $teamTwoActive ? 'fw-bold text-dark fs-5' : 'text-muted fs-5 fw-medium' }}">
+                                            {{ $match->teamTwo->name }}
+                                            @if($teamTwoActive)<span class="text-danger small fs-6 ms-1">🏏</span>@endif
+                                        </span>
+                                        <span class="{{ $teamTwoActive ? 'fw-bold fs-5 text-dark' : 'fs-7 text-muted fw-medium' }}">
+                                            {{ $teamTwoText }}
+                                        </span>
                                     </div>
                                 </div>
+                                
                                 <div class="border-top pt-3 mt-2">
                                     <small class="text-danger fw-semibold">
-                                        <i class="fa-solid fa-clock me-1"></i> Innings 1 coverage is active.
+                                        <i class="fa-solid fa-clock me-1"></i> Innings {{ $currentInnings }} coverage is active.
                                     </small>
                                 </div>
                             </div>

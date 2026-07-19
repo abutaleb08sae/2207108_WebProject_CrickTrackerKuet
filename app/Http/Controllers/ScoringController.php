@@ -75,6 +75,9 @@ class ScoringController extends Controller
         $score->innings_one_batting_team_id = $inningsOneBatting;
         $score->innings_two_batting_team_id = ($inningsOneBatting == $teamOneId) ? $teamTwoId : $teamOneId;
         $score->current_innings = 1;
+        $score->runs = 0;
+        $score->wickets = 0;
+        $score->balls_bowled = 0;
         $score->save();
 
         return redirect()->action([self::class, 'showDashboard'], ['fixture' => $fixtureId])
@@ -190,13 +193,11 @@ class ScoringController extends Controller
                 
             case 'end_innings':
                 if ($currentInnings == 1) {
-                    // Permanently capture and lock down 1st Innings snapshots before changing counters
                     $score->innings_one_runs = $runs;
                     $score->innings_one_wickets = $wickets;
                     $score->innings_one_balls = $balls;
-                    $score->target_runs = $runs + 1; // Explicit target setting calculation
+                    $score->target_runs = $runs + 1;
 
-                    // Shift tracking engine to 2nd Innings initialized values
                     $score->current_innings = 2;
                     $score->runs = 0;
                     $score->wickets = 0;
@@ -206,7 +207,6 @@ class ScoringController extends Controller
                     $score->innings_two_balls = 0;
                     $score->save();
 
-                    // Flush active striker/bowler configurations to enforce standard re-selection 
                     $state->update(['batsman_on_strike_id' => null, 'batsman_off_strike_id' => null, 'current_bowler_id' => null]);
 
                     return redirect()->back()->with('success', '1st Innings closed! Target set to ' . $score->target_runs . ' runs.');
@@ -271,36 +271,33 @@ class ScoringController extends Controller
                 return redirect()->back()->with('success', 'Match completely reset.');
         }
 
-        // Handle structural strike over rotations safely
         if (!in_array($action, ['add_wide', 'add_noball', 'end_innings', 'end_match', 'reset'])) {
             if ($balls > 0 && $balls % 6 === 0) {
                 $this->rotateStrike($state);
             }
         }
 
-        // Recalculate dynamic float values for overs cleanly before saving
         if ($bowlerCard) {
             $overFloat = floor($bowlerCard->balls_bowled / 6) + (($bowlerCard->balls_bowled % 6) / 10);
             $bowlerCard->update(['overs_bowled' => $overFloat]);
         }
 
+        // FIXED: Explicitly sync BOTH the innings matrices and global master tracking columns 
         if ($currentInnings == 1) {
             $score->innings_one_runs = $runs;
             $score->innings_one_wickets = $wickets;
             $score->innings_one_balls = $balls;
-            $score->runs = $runs;
-            $score->wickets = $wickets;
-            $score->balls_bowled = $balls;
-            $score->save();
         } else {
             $score->innings_two_runs = $runs;
             $score->innings_two_wickets = $wickets;
             $score->innings_two_balls = $balls;
-            $score->runs = $runs;
-            $score->wickets = $wickets;
-            $score->balls_bowled = $balls;
-            $score->save();
         }
+
+        // Synchronize primary operational counters for real-time dashboards
+        $score->runs = $runs;
+        $score->wickets = $wickets;
+        $score->balls_bowled = $balls;
+        $score->save();
 
         return redirect()->back();
     }
